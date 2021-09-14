@@ -17,9 +17,57 @@ np = ""
 queue = 0
 isp = False
 
+current_song = -1
+
+def player(ctx):
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    global isp, queue, current_song
+    current_dir = os.listdir("./music")    
+    for file in os.listdir("./music"):
+        try:
+            voice.play(discord.FFmpegPCMAudio(f"./music/{file}"))
+            current_song += 1
+            song = pyglet.media.load(f"./music/{file}")
+            time.sleep(song.duration)
+            if current_dir != os.listdir("./music"):
+                os.remove(f"./music/{file}")
+                player()
+        except:
+            print(Exception)
+            
+    isp = False
+    queue = 0
+    for file in os.listdir("./music"):
+        os.remove(f"./music/{file}")
+        
+#th = Thread(target=player)
+
+def start_playing(ctx):
+    global isp
+    if not isp:
+        print("isp changed")    
+        isp = True
+        th = Thread(target=player, args=(ctx, ))
+        th.start()
+        
+"""     
+@bot.command(pass_context=False)
+async def fs(ctx):
+    global current_song
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    voice.stop()
+    #os.remove(f"./music/song{current_song}.mp3")
+    try:
+        voice.play(discord.FFmpegPCMAudio(f"./music/song{current_song+1}.mp3"))
+        current_song += 1
+    except:
+        pass
+        """
+
 @bot.command(pass_context=True)
 async def p(ctx, url): # play
    # await ctx.send(arg)
+    
     global queue, isp, np
     channel = ctx.message.author.voice.channel
     if not channel:
@@ -48,9 +96,9 @@ async def p(ctx, url): # play
                     os.rename(f"./music/{file}", f"./music/song{queue}.mp3")
                     queue+=1
                 except FileExistsError:
-                    for file in os.listdir("./music"):
-                        if file.endswith(".mp3"):
-                            os.remove(f"./music/{file}")
+                    for file1 in os.listdir("./music"):
+                        if file1.endswith(".mp3"):
+                            os.remove(f"./music/{file1}")
                     os.rename(f"./music/{file}", f"./music/song{queue}.mp3")
                     queue+=1         
             else:
@@ -58,12 +106,14 @@ async def p(ctx, url): # play
                     os.rename(f"./music/{file}", './music/song0.mp3')
                     queue = 1
                 except FileExistsError:
-                    for file in os.listdir("./music"):
-                        if file.endswith(".mp3"):
-                            os.remove(f"./music/{file}")
+                    for file1 in os.listdir("./music"):
+                        if file1.endswith(".mp3"):
+                            os.remove(f"./music/{file1}")
                     os.rename(f"./music/{file}", './music/song0.mp3')
                     queue = 1
     print(isp)
+    start_playing(ctx)
+    """
     def player():
         global isp, queue
         current_dir = os.listdir("./music")    
@@ -86,7 +136,7 @@ async def p(ctx, url): # play
         print("isp changed")    
         isp = True
         th = Thread(target=player)
-        th.start()
+        th.start()"""
 
 @bot.command(pass_context=False)    
 async def stop(ctx):
@@ -97,16 +147,25 @@ async def stop(ctx):
         await ctx.send(f"Left {channel}")
     else:
         await ctx.send("Don't think I am in a voice channel")
+    try:
+        for file in os.listdir("./music"):
+            if file.endswith(".mp3"):
+                os.remove(f"./music/{file}")
+    except:
+        pass
     np = ""
     
 @bot.command(pass_context=False)
-async def fs(ctx):
-    await ctx.send('fs')
-    voice = get(bot.voice_clients, guild=ctx.guild)
-    print(voice.is_playing())
-    
-@bot.command(pass_context=False)
 async def pause(ctx):
-    await ctx.send('pause')
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    if voice.is_paused():
+        voice.resume()
+    else:
+        voice.pause()
+        
+@bot.command(pass_context=False)
+async def resume(ctx):
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    voice.resume()
     
 bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
