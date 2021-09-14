@@ -9,6 +9,7 @@ from threading import Thread
 import time
 import pyglet
 
+
 client = discord.Client()
 bot = commands.Bot(command_prefix='$')
 
