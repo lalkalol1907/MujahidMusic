@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.utils import get
 from discord import FFmpegPCMAudio
 from os import system
-from threading import Thread
+import threading
 import time
 import pyglet
 
@@ -14,61 +14,100 @@ client = discord.Client()
 bot = commands.Bot(command_prefix='$')
 
 np = ""
-queue = 0
+queue = -1
 isp = False
-
 current_song = -1
+ctx = None
+lock = threading.Lock()
+stop_thread = False
 
-def player(ctx):
-    voice = get(bot.voice_clients, guild=ctx.guild)
-    global isp, queue, current_song
-    current_dir = os.listdir("./music")    
-    for file in os.listdir("./music"):
-        try:
-            voice.play(discord.FFmpegPCMAudio(f"./music/{file}"))
-            current_song += 1
-            song = pyglet.media.load(f"./music/{file}")
-            time.sleep(song.duration)
-            if current_dir != os.listdir("./music"):
-                os.remove(f"./music/{file}")
-                player()
-        except:
-            print(Exception)
+class player(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        
+    def run(self):
+        print("runned")
+        global ctx, stop_thread
+        voice = get(bot.voice_clients, guild=ctx.guild)
+        global isp, queue, current_song
+        if lock.locked():
+            lock.release()
+        
+        current_dir = os.listdir("./music/queue")    
+        for file in os.listdir("./music/queue"):
+            try:
+                current_song += 1
+                voice.play(discord.FFmpegPCMAudio(f"./music/queue/song{current_song}.mp3"))
+                try:
+                    os.rename(f"./music/queue/song{current_song-1}.mp3", f"./music/played/song{current_song-1}.mp3")
+                except:
+                    pass  
+                print(current_song)
+                for i in range(int(pyglet.media.load(f"./music/queue/song{current_song}.mp3").duration)+1):
+                    lock.acquire()
+                    try:
+                        if stop_thread is True:
+                            voice.stop()
+                            stop_thread = False
+                            print("stopped")
+                            self.run()
+                            break
+                    finally:
+                        lock.release()
+                    time.sleep(1)
+                if current_dir != os.listdir("./music/queue"):
+                    #os.rename(f"./music/queue/song{current_song}.mp3", f"./music/played/song{current_song}.mp3")
+                    self.run()
+                #else:
+                    #try:
+                        #os.rename(f"./music/queue/song{current_song}.mp3", f"./music/played/song{current_song}.mp3")
+                    #except FileNotFoundError:
+                        #print("already deleted")
+            except Exception as ex:
+                print(ex) 
+        isp = False
+        for file in os.listdir("./music/queue"):
+            try:
+                os.rename(f"./music/queue/song{current_song}.mp3", f"./music/played/song{current_song}.mp3")
+            except FileNotFoundError:
+                print("already deleted")
+
+class checker(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        
+    def run(self):
+        global ctx
+        voice = get(bot.voice_clients, guild=ctx.guild)
+        while True:
+            time.sleep(120)
+            if not voice.playing() and not voice.paused():
+                self.deleter()
+                
+    def deleter(self):
+        if [] != os.listdir("./music/played"):
+            try:
+                for file in os.listdir("./music/played"):
+                    if file.endswith(".mp3"):
+                        os.remove(f"./music/played/{file}")
+            except:
+                pass
             
-    isp = False
-    queue = 0
-    for file in os.listdir("./music"):
-        os.remove(f"./music/{file}")
-        
-#th = Thread(target=player)
+checker_thread = checker()        
 
-def start_playing(ctx):
-    global isp
-    if not isp:
-        print("isp changed")    
-        isp = True
-        th = Thread(target=player, args=(ctx, ))
-        th.start()
-        
-"""     
 @bot.command(pass_context=False)
-async def fs(ctx):
-    global current_song
-    voice = get(bot.voice_clients, guild=ctx.guild)
-    voice.stop()
-    #os.remove(f"./music/song{current_song}.mp3")
-    try:
-        voice.play(discord.FFmpegPCMAudio(f"./music/song{current_song+1}.mp3"))
-        current_song += 1
-    except:
-        pass
-        """
+async def fs(ctxx):
+    global ctx
+    ctx = ctxx
+    global current_song, stop_thread
+    stop_thread = True
 
 @bot.command(pass_context=True)
-async def p(ctx, url): # play
+async def p(ctxx, url): # play
    # await ctx.send(arg)
     
-    global queue, isp, np
+    global queue, isp, np, ctx, thread
+    ctx = ctxx
     channel = ctx.message.author.voice.channel
     if not channel:
         await ctx.send("Пидорас, подключись")
@@ -87,59 +126,53 @@ async def p(ctx, url): # play
     
     youtube = pytube.YouTube(url)
     mp3 = youtube.streams.filter(only_audio=True).first()
-    mp3.download('./music')
+    mp3.download('./music/queue')
     
-    for file in os.listdir("./music"):
+    for file in os.listdir("./music/queue"):
         if file.endswith(".mp4"):
-            if queue:
+            if queue != -1:
                 try:
-                    os.rename(f"./music/{file}", f"./music/song{queue}.mp3")
+                    os.rename(f"./music/queue/{file}", f"./music/queue/song{queue+1}.mp3")
                     queue+=1
                 except FileExistsError:
-                    for file1 in os.listdir("./music"):
+                    for file1 in os.listdir("./music/queue"):
                         if file1.endswith(".mp3"):
-                            os.remove(f"./music/{file1}")
-                    os.rename(f"./music/{file}", f"./music/song{queue}.mp3")
+                            try:
+                                os.remove(f"./music/queue/{file1}")
+                            except FileNotFoundError:
+                                pass
+                    os.rename(f"./music/queue/{file}", f"./music/queue/song{queue+1}.mp3")
                     queue+=1         
             else:
                 try:
-                    os.rename(f"./music/{file}", './music/song0.mp3')
-                    queue = 1
+                    os.rename(f"./music/queue/{file}", './music/queue/song0.mp3')
+                    queue = 0
                 except FileExistsError:
-                    for file1 in os.listdir("./music"):
+                    for file1 in os.listdir("./music/queue"):
                         if file1.endswith(".mp3"):
-                            os.remove(f"./music/{file1}")
-                    os.rename(f"./music/{file}", './music/song0.mp3')
-                    queue = 1
+                            try:
+                                os.remove(f"./music/queue/{file1}")
+                            except FileNotFoundError:
+                                pass
+                    os.rename(f"./music/queue/{file}", './music/queue/song0.mp3')
+                    queue = 0
     print(isp)
-    start_playing(ctx)
-    """
-    def player():
-        global isp, queue
-        current_dir = os.listdir("./music")    
-        for file in os.listdir("./music"):
-            try:
-                voice.play(discord.FFmpegPCMAudio(f"./music/{file}"))
-                song = pyglet.media.load(f"./music/{file}")
-                time.sleep(song.duration)
-                if current_dir != os.listdir("./music"):
-                    os.remove(f"./music/{file}")
-                    player()
-            except:
-                print(Exception)
-            
-        isp = False
-        queue = 0
-        for file in os.listdir("./music"):
-            os.remove(f"./music/{file}")
     if not isp:
+        thread = player()
         print("isp changed")    
         isp = True
-        th = Thread(target=player)
-        th.start()"""
-
+        try:
+            thread.start()
+        except RuntimeError:
+            print("excepted")
+            thread.join()
+            thread.start()
+    
 @bot.command(pass_context=False)    
-async def stop(ctx):
+async def leave(ctxx):
+    global queue
+    global ctx
+    ctx = ctxx
     channel = ctx.message.author.voice.channel
     voice = get(bot.voice_clients, guild=ctx.guild)
     if voice and voice.is_connected():
@@ -154,9 +187,29 @@ async def stop(ctx):
     except:
         pass
     np = ""
+    queue = 0
+    
+@bot.command(pass_context=False)    
+async def stop(ctxx):
+    global queue
+    global ctx
+    ctx = ctxx
+    channel = ctx.message.author.voice.channel
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    await voice.stop()
+    await ctx.send(f"Left {channel}")
+    try:
+        for file in os.listdir("./music"):
+            if file.endswith(".mp3"):
+                os.remove(f"./music/{file}")
+    except:
+        pass
+    np = ""
+    queue = 0
     
 @bot.command(pass_context=False)
-async def pause(ctx):
+async def pause(ctxx):
+    ctx = ctxx
     voice = get(bot.voice_clients, guild=ctx.guild)
     if voice.is_paused():
         voice.resume()
@@ -164,7 +217,8 @@ async def pause(ctx):
         voice.pause()
         
 @bot.command(pass_context=False)
-async def resume(ctx):
+async def resume(ctxx):
+    ctx = ctxx
     voice = get(bot.voice_clients, guild=ctx.guild)
     voice.resume()
     
