@@ -21,6 +21,15 @@ ctx = None
 lock = threading.Lock()
 stop_thread = False
 
+def clear(path):
+    if [] != os.listdir(path):
+            try:
+                for file in os.listdir(path):
+                    if file.endswith(".mp3"):
+                        os.remove(f"{path}/{file}")
+            except:
+                pass
+
 class player(threading.Thread):
     def __init__(self):
         super().__init__()
@@ -34,15 +43,19 @@ class player(threading.Thread):
             lock.release()
         
         current_dir = os.listdir("./music/queue")    
-        for file in os.listdir("./music/queue"):
+        for file in range(len(os.listdir("./music/queue"))):
             try:
                 current_song += 1
+                if current_song >= len(os.listdir("./music/queue")):
+                    current_song-=1; break
                 voice.play(discord.FFmpegPCMAudio(f"./music/queue/song{current_song}.mp3"))
-                try:
-                    os.rename(f"./music/queue/song{current_song-1}.mp3", f"./music/played/song{current_song-1}.mp3")
-                except:
-                    pass  
                 print(current_song)
+                #if current_song != 0:
+                    #try:
+                        #os.rename(f"./music/queue/song{current_song-1}.mp3", f"./music/played/song{current_song-1}.mp3")
+                    #except FileExistsError:
+                        #clear(f"./music/played")
+                        #os.rename(f"./music/queue/song{current_song-1}.mp3", f"./music/played/song{current_song-1}.mp3")
                 for i in range(int(pyglet.media.load(f"./music/queue/song{current_song}.mp3").duration)+1):
                     lock.acquire()
                     try:
@@ -55,7 +68,10 @@ class player(threading.Thread):
                     finally:
                         lock.release()
                     time.sleep(1)
-                if current_dir != os.listdir("./music/queue"):
+                print(len(current_dir), "______", len(os.listdir("./music/queue")))
+                print(len(current_dir) != len(os.listdir("./music/queue")))
+                if len(current_dir) != len(os.listdir("./music/queue")):
+                    
                     #os.rename(f"./music/queue/song{current_song}.mp3", f"./music/played/song{current_song}.mp3")
                     self.run()
                 #else:
@@ -63,14 +79,18 @@ class player(threading.Thread):
                         #os.rename(f"./music/queue/song{current_song}.mp3", f"./music/played/song{current_song}.mp3")
                     #except FileNotFoundError:
                         #print("already deleted")
+                    
             except Exception as ex:
                 print(ex) 
         isp = False
-        for file in os.listdir("./music/queue"):
+        """for file in os.listdir("./music/queue"):
             try:
                 os.rename(f"./music/queue/song{current_song}.mp3", f"./music/played/song{current_song}.mp3")
             except FileNotFoundError:
                 print("already deleted")
+            except FileExistsError:
+                clear(f"./music/played")
+                os.rename(f"./music/queue/song{current_song-1}.mp3", f"./music/played/song{current_song-1}.mp3")"""
 
 class checker(threading.Thread):
     def __init__(self):
@@ -161,12 +181,12 @@ async def p(ctxx, url): # play
         thread = player()
         print("isp changed")    
         isp = True
-        try:
-            thread.start()
-        except RuntimeError:
-            print("excepted")
-            thread.join()
-            thread.start()
+        #try:
+        thread.start()
+        #except RuntimeError:
+            #print("excepted")
+            #thread.join()
+            #thread.start()
     
 @bot.command(pass_context=False)    
 async def leave(ctxx):
@@ -191,7 +211,7 @@ async def leave(ctxx):
     
 @bot.command(pass_context=False)    
 async def stop(ctxx):
-    global queue
+    global queue, current_song
     global ctx
     ctx = ctxx
     channel = ctx.message.author.voice.channel
@@ -205,7 +225,8 @@ async def stop(ctxx):
     except:
         pass
     np = ""
-    queue = 0
+    queue = -1
+    current_song = -1
     
 @bot.command(pass_context=False)
 async def pause(ctxx):
