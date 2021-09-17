@@ -1,6 +1,5 @@
 import discord
 from discord.gateway import DiscordWebSocket
-import pytube
 import os
 from discord.ext import commands
 from discord.utils import get
@@ -39,12 +38,16 @@ class cleaner3000(threading.Thread):
     def run(self):
         global isp, current_song
         while True:
-            for file in os.listdir("./music/queue"):
-                if (file.name[18:len(file.name)-4] != current_song) and (isp):
-                    try:
-                        os.remove(f"./music/queue{file}")
-                    except:
-                        time.sleep(180)
+            if isp:
+                for file in os.listdir("./music/queue"):
+                    if (file[18:len(file)-4] != current_song):
+                        try:
+                            os.remove(f"./music/queue/{file}")
+                        except Exception as ex:
+                            print(f"Can't delete, error: {ex}")
+                            time.sleep(30)
+            else:
+                clear("./music/queue")
             time.sleep(180)
                     
                     
@@ -63,7 +66,6 @@ class kick_checker(threading.Thread):
     def __stopper(self):
         global queue, current_song, stop_voice
         global ctx, isp
-        np = ""
         time.sleep(1)
         clear("./music/queue")
         queue = -1
@@ -124,10 +126,10 @@ async def fs(ctxx):
     global current_song, stop_thread
     stop_thread = True
 
+
 @bot.command(pass_context=True)
-async def p(ctxx, text): # play
+async def p(ctxx, *, text): # play
    # await ctx.send(arg)
-    
     global queue, isp, np, ctx, thread
     ctx = ctxx
     channel = ctx.message.author.voice.channel
@@ -140,6 +142,7 @@ async def p(ctxx, text): # play
     else:
         voice = await channel.connect()
     await ctx.send(f"Подключен к #{channel}")
+    print(text)
     print("Someone wants to play music let me get that ready for them...")
     voice = get(bot.voice_clients, guild=ctx.guild)
     dw = Downloader(queue)
@@ -160,19 +163,22 @@ async def p(ctxx, text): # play
     
 @bot.command(pass_context=False)    
 async def leave(ctxx):
-    global queue, current_song
-    global ctx
+    global queue, current_song, stop_voice
+    global ctx, isp
     ctx = ctxx
+    stop_voice = True
+    time.sleep(1)
+    clear("./music/queue")
+    queue = -1
+    current_song = -1
+    isp = False
     channel = ctx.message.author.voice.channel
     voice = get(bot.voice_clients, guild=ctx.guild)
     if voice and voice.is_connected():
         await voice.disconnect()
-        await ctx.send(f"Left {channel}")
+        await ctx.send(f"Покинул канал: {channel}")
     else:
         await ctx.send("Я не подключен к каналу")
-    clear("./music/queue")
-    queue = -1
-    current_song = -1
     
 @bot.command(pass_context=False)    
 async def stop(ctxx):
