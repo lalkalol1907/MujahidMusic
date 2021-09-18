@@ -15,7 +15,7 @@ class Downloader():
         self.queue = queue
         self.ctx = ctx
     
-    def analyze(self, text):
+    async def analyze(self, text):
         if validators.url(text):
             if "spotify" in text: self.__download_from_spotify_url(text)
             elif "youtube" in text or "youtu.be" in text: self.__download_from_yt_url(text)
@@ -58,6 +58,7 @@ class Downloader():
                 names.append(f"{name[:-4]}")
                 urls.append(url)
                 numbers.append(self.queue)
+                long.append(pyglet.media.load(f"./music/queue/song{self.queue}.mp3").duration)
     
     def __download_from_spotify_url(self, url):
         pass
