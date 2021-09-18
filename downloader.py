@@ -17,9 +17,12 @@ class Downloader():
     
     async def analyze(self, text):
         if validators.url(text):
-            if "spotify" in text: self.__download_from_spotify_url(text)
-            elif "youtube" in text or "youtu.be" in text: self.__download_from_yt_url(text)
-        else: self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}")
+            if "spotify" in text: 
+                self.__download_from_spotify_url(text)
+        elif "youtube" in text or "youtu.be" in text: 
+            self.__download_from_yt_url(text)
+        else: 
+            self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}")
         
     def __download_from_yt_url(self, url):
         global songs
