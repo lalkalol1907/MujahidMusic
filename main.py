@@ -20,6 +20,7 @@ stop_thread = False
 stop_voice = False
 ctime = 0
 kick_checker_bool = False
+allower = False
     
 def clear(path):
     if [] != os.listdir(path):
@@ -39,14 +40,14 @@ class cleaner3000(threading.Thread):
         print("cleaner started")
         while True:
             if current_song > 0:
-                for i in range(current_song-1):
+                for i in range(current_song):
                     if i not in self.already_deleted:
                         try:
                             os.remove(f"./music/queue/song{i}.mp3")
                             self.already_deleted.append(i)
                         except Exception as ex:
                             print(f"Can't delete, exception {ex}")
-            time.sleep(180)
+            time.sleep(30)
                     
                     
 class kick_checker(threading.Thread):
@@ -54,36 +55,38 @@ class kick_checker(threading.Thread):
         super().__init__()
         
     def run(self):
+        global allower
         print("kickchecker started")
         global ctx
         while True:
             voice = get(bot.voice_clients, guild=ctx.guild)
-            if voice and not voice.is_connected():
+            if not voice and allower:
                 self.__stopper()
-            time.sleep(5)
+            time.sleep(2)
             
     def __stopper(self):
-        global queue, current_song, stop_voice, urls, names, numbers, long, ctx, isp
-        urls, names, numbers, long = [], [], [], []
+        global queue, current_song, stop_voice, songs, ctx, isp, allower
+        queue, current_song, isp = -1, -1, False
         time.sleep(1)
         clear("./music/queue")
-        queue = -1
-        current_song = -1
-        isp = False
+        songs.clear()
+        allower = True
                
        
 async def MusicPlayer(voice):
     print("runned")
-    global ctx, stop_thread, stop_voice, ctime, isp, queue, current_song, long, names, urls
+    global ctx, stop_thread, stop_voice, ctime, isp, queue, current_song, songs
     for file in range(len(os.listdir("./music/queue"))):
         try:
             current_song += 1
             if current_song > queue:
                 current_song-=1; break
             voice.stop()
-            dur = long[current_song]
+            song = songs[current_song]
+            print(song)
+            dur = song.long
             voice.play(discord.FFmpegPCMAudio(f"./music/queue/song{current_song}.mp3"))
-            await ctx.send(embed=Embeds().playing(names[current_song], urls[current_song], int(dur), ctx))
+            await ctx.send(embed=Embeds().playing(song.name, song.url, int(dur), ctx))
             ctime = 0
             for i in range(int(dur)+3):
                 try:
@@ -117,7 +120,7 @@ async def fs(ctxx):
 @bot.command(pass_context=True)
 async def p(ctxx, *, text): # play
    # await ctx.send(arg)
-    global queue, isp, ctx, kick_checker_bool, names, urls, longs
+    global queue, isp, ctx, kick_checker_bool, songs, allower
     ctx = ctxx
     channel = ctx.message.author.voice.channel
     voice = get(bot.voice_clients, guild=ctx.guild)
@@ -130,11 +133,13 @@ async def p(ctxx, *, text): # play
     await dw.analyze(text)
     queue = dw.queue            
     if isp:
-        await ctx.send(embed=Embeds().added_to_queue(names[queue], urls[queue], int(long[queue]), ctx, queue, current_song))
+        song = songs[queue]
+        await ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), ctx, queue, current_song))
         pass
     if not kick_checker_bool:
         kick_checker().start()
-        kick_checker_bool = True    
+        kick_checker_bool = True
+        allower = True    
     if not isp:
         #print("isp changed")    
         isp = True
@@ -143,13 +148,15 @@ async def p(ctxx, *, text): # play
             
 @bot.command(pass_context=False)    
 async def leave(ctxx):
-    global queue, current_song, stop_voice, urls, names, numbers, long, ctx, isp
+    global queue, current_song, stop_voice, songs, ctx, isp
     ctx = ctxx
     stop_voice = True
+    queue, current_song, isp = -1, -1, False
+    channel = ctx.message.author.voice.channel
     await asyncio.sleep(1)
     clear("./music/queue")
-    urls, names, numbers, long, queue, current_song, isp = [], [], [], [], -1, -1, False
-    channel = ctx.message.author.voice.channel
+    stop_voice = False
+    songs.clear()
     voice = get(bot.voice_clients, guild=ctx.guild)
     if voice and voice.is_connected():
         await voice.disconnect()
@@ -159,12 +166,14 @@ async def leave(ctxx):
     
 @bot.command(pass_context=False)    
 async def stop(ctxx):
-    global queue, current_song, stop_voice, urls, names, numbers, long, ctx, isp
+    global queue, current_song, stop_voice, songs, ctx, isp
     ctx = ctxx
     stop_voice = True
     await asyncio.sleep(1)
     clear("./music/queue")
-    urls, names, numbers, long, queue, current_song, isp = [], [], [], [], -1, -1, False
+    queue, current_song, isp = -1, -1, False
+    songs.clear()
+    stop_voice = False
     
 @bot.command(pass_context=False)
 async def pause(ctxx):
@@ -183,12 +192,13 @@ async def resume(ctxx):
     
 @bot.command(pass_context=False)
 async def np(ctxx):
-    global ctx, current_song, ctime, long, names
+    global ctx, current_song, ctime, long, songs
     ctx = ctxx
     voice = get(bot.voice_clients, guild=ctx.guild)
     if voice.is_connected():
         if isp: 
-            await ctx.send(embed=Embeds().NPEmbed(title=names[current_song], url=urls[current_song], time1 = ctime, time2 = long[current_song],  ctx = ctxx))
+            song = songs[current_song]
+            await ctx.send(embed=Embeds().NPEmbed(title=song.name, url=song.url, time1 = ctime, time2 = song.long,  ctx = ctxx))
         else: 
             await ctx.send("Nothing is playing now")
     else: 
@@ -197,6 +207,7 @@ async def np(ctxx):
 @bot.command(pass_context=True)
 async def loop(ctxx, *, text):
     pass
+
 
 cleaner3000().start()
 bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
