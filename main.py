@@ -2,9 +2,6 @@ import discord
 import os
 from discord.ext import commands
 from discord.utils import get
-import threading
-import time
-import pyglet
 import asyncio
 from downloader import *
 from embeds import Embeds
@@ -22,56 +19,42 @@ ctime = 0
 kick_checker_bool = False
 allower = False
     
-def clear(path):
+async def clear(path):
     if [] != os.listdir(path):
             try:
                 for file in os.listdir(path):
                     if file.endswith(".mp3"):
                         os.remove(f"{path}/{file}")
             except: pass
-
-class cleaner3000(threading.Thread):
-    def __init__(self):
-        super().__init__()
-        self.already_deleted = []
-        
-    def run(self):
-        global isp, current_song
-        print("cleaner started")
-        while True:
-            if current_song > 0:
-                for i in range(current_song):
-                    if i not in self.already_deleted:
-                        try:
-                            os.remove(f"./music/queue/song{i}.mp3")
-                            self.already_deleted.append(i)
-                        except Exception as ex:
-                            print(f"Can't delete, exception {ex}")
-            time.sleep(30)
-                    
-                    
-class kick_checker(threading.Thread):
-    def __init__(self):
-        super().__init__()
-        
-    def run(self):
-        global allower
-        print("kickchecker started")
-        global ctx
-        while True:
-            voice = get(bot.voice_clients, guild=ctx.guild)
-            if not voice and allower:
-                self.__stopper()
-            time.sleep(2)
             
-    def __stopper(self):
-        global queue, current_song, stop_voice, songs, ctx, isp, allower
-        queue, current_song, isp = -1, -1, False
-        time.sleep(1)
-        clear("./music/queue")
-        songs.clear()
-        allower = True
-               
+async def cleaner():
+    already_deleted = []
+    global isp, current_song
+    print("cleaner started")
+    while True:
+        if current_song > 0:
+            for i in range(0, current_song):
+                if i not in already_deleted:
+                    try:
+                        os.remove(f"./music/queue/song{i}.mp3")
+                        already_deleted.append(i)
+                    except Exception as ex:
+                        print(f"Can't delete, exception {ex}")
+        await asyncio.sleep(30)                
+                    
+async def kick_checker():
+    global queue, current_song, stop_voice, songs, ctx, isp, allower
+    print("kickchecker started")
+    global ctx
+    while True:
+        voice = get(bot.voice_clients, guild=ctx.guild)
+        if not voice and allower:
+            queue, current_song, isp = -1, -1, False
+            await asyncio.sleep(1)
+            await clear("./music/queue")
+            songs.clear()
+            allower = True
+        await asyncio.sleep(2)
        
 async def MusicPlayer(voice):
     print("runned")
@@ -137,7 +120,7 @@ async def p(ctxx, *, text): # play
         await ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), ctx, queue, current_song))
         pass
     if not kick_checker_bool:
-        kick_checker().start()
+        asyncio.get_event_loop().create_task(kick_checker())
         kick_checker_bool = True
         allower = True    
     if not isp:
@@ -154,7 +137,7 @@ async def leave(ctxx):
     queue, current_song, isp = -1, -1, False
     channel = ctx.message.author.voice.channel
     await asyncio.sleep(1)
-    clear("./music/queue")
+    await ("./music/queue")
     stop_voice = False
     songs.clear()
     voice = get(bot.voice_clients, guild=ctx.guild)
@@ -170,7 +153,7 @@ async def stop(ctxx):
     ctx = ctxx
     stop_voice = True
     await asyncio.sleep(1)
-    clear("./music/queue")
+    await clear("./music/queue")
     queue, current_song, isp = -1, -1, False
     songs.clear()
     stop_voice = False
@@ -209,5 +192,5 @@ async def loop(ctxx, *, text):
     pass
 
 
-cleaner3000().start()
+asyncio.get_event_loop().create_task(cleaner())
 bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
