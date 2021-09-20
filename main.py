@@ -60,6 +60,7 @@ class Soprogs:
     async def MusicPlayer(self, voice, s = 0):
         print("runned")
         global stop_thread, stop_voice, ctime, isp, queue, current_song, songs, ctx, sss
+        stop_voice_2 = False
         print(len(songs))
         for ss in range(s, len(songs)): 
             sss = ss
@@ -81,18 +82,24 @@ class Soprogs:
                             stop_thread = False
                             print("stopped")
                             ss+=1
+                            print("rec1")
                             await self.MusicPlayer(voice, ss)
                             break
                         if stop_voice is True:
                             voice.stop()
                             stop_voice = False
+                            stop_voice_2 = True
                             break
                     finally:
                         pass
                     ctime += 1
                     await asyncio.sleep(1)
+                if stop_voice_2:
+                    stop_voice_2 = False
+                    break
                 if current_song <= queue:
                     ss+=1
+                    print("rec2")
                     await self.MusicPlayer(voice, ss)
             except Exception as ex:
                 print(ex) 
@@ -203,8 +210,8 @@ class Bot:
         await asyncio.sleep(1)
         await Soprogs().clear("./music/queue")
         queue, current_song, isp, sss = -1, -1, False, 0
-        songs.clear()
         stop_voice = False
+        songs.clear()
     
     @staticmethod
     @bot.command(pass_context=False)
@@ -239,8 +246,8 @@ class Bot:
             await ctx.send("Not connected to the channel")
         
     @staticmethod    
-    @bot.command(pass_context=True)
-    async def loop(ctxx, *, text):
+    @bot.command(pass_context=False)
+    async def loop(ctxx):
         await ctxx.send("`This function is being developed now`")
     
     @staticmethod

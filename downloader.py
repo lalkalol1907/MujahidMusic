@@ -86,6 +86,3 @@ class Downloader():
         
     async def download_from_vk_url(self, text):
         pass
-        
-    
-    
