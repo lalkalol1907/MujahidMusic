@@ -56,7 +56,7 @@ class Downloader():
                         for file2 in os.listdir("./music/queue"):
                             try:
                                 if "song" in file:
-                                    os.remove(f"./music/queue/{file1}")
+                                    os.remove(f"./music/queue/{file2}")
                             except FileNotFoundError: pass
                         os.rename(f"./music/{file}", './music/queue/song0.mp3')
                         self.queue = 0

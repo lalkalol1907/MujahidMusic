@@ -84,7 +84,8 @@ class Soprogs:
                             ss+=1
                             print("rec1")
                             await self.MusicPlayer(voice, ss)
-                            break
+                            isp = False
+                            return
                         if stop_voice is True:
                             voice.stop()
                             stop_voice = False
@@ -96,11 +97,15 @@ class Soprogs:
                     await asyncio.sleep(1)
                 if stop_voice_2:
                     stop_voice_2 = False
-                    break
+                    isp = False
+                    sss = ss + 1
+                    return
                 if current_song <= queue:
                     ss+=1
                     print("rec2")
                     await self.MusicPlayer(voice, ss)
+                    isp = False
+                    return
             except Exception as ex:
                 print(ex) 
         else:
@@ -171,7 +176,7 @@ class Bot:
             cleaner_bool = True
             
     @staticmethod
-    @bot.command(pass_context = True)
+    @bot.command(pass_context = False)
     async def vk(ctxx, *, text):
         global ctx
         ctx = ctxx
