@@ -105,6 +105,8 @@ class Soprogs:
                 print(ex) 
         else:
             sss = s+1
+            isp = False
+            return
         isp = False
         
     async def kick_checker(self, ctx):
@@ -128,8 +130,11 @@ class Bot:
         global ctx
         ctx = ctxx
         global current_song, stop_thread, fscount
-        stop_thread = True
-        fscount += 1
+        if isp:
+            stop_thread = True
+            fscount += 1
+        else:
+            await ctxx.send("There's nothing to skip")
         
     @staticmethod
     @bot.command(pass_context=True, aliases = Aliases().p)
@@ -218,17 +223,23 @@ class Bot:
     async def pause(ctxx):
         ctx = ctxx
         voice = get(bot.voice_clients, guild=ctx.guild)
-        if voice.is_paused(): 
-            voice.resume()
-        else: 
-            voice.pause()
+        try:
+            if voice.is_paused(): 
+                voice.resume()
+            else: 
+                voice.pause()
+        except AttributeError:
+            await ctxx.send("I'm not connected")
         
     @staticmethod    
     @bot.command(pass_context=False)
     async def resume(ctxx):
         ctx = ctxx
-        voice = get(bot.voice_clients, guild=ctx.guild)
-        voice.resume()
+        try:
+            voice = get(bot.voice_clients, guild=ctx.guild)
+            voice.resume()
+        except AttributeError:
+            await ctxx.send("I'm not connected")
     
     @staticmethod
     @bot.command(pass_context=False, aliases=Aliases().np)

@@ -65,7 +65,7 @@ class Embeds:
                     d[i] = f"0{d[i]}"
             return f"{d[0]}:{d[1]}:{d[2]}"
         
-        embed = discord.Embed(title=f"1) {songs[current_song].name}", url=f"{songs[current_song].url}", description=f"{self.__formated_line(ctime, songs[current_song].long)}\n`Elapsed: {__time_format1(int(songs[current_song].long - ctime))}", color=0x5C02C2)
+        embed = discord.Embed(title=f"1) {songs[current_song].name}", url=f"{songs[current_song].url}", description=f"{self.__formated_line(ctime, songs[current_song].long)}\n`Elapsed: {__time_format1(int(songs[current_song].long - ctime))}`", color=0x5C02C2)
         embed.set_thumbnail(url=self.__get_tb(songs[current_song].name))
         embed.set_author(name = "Queue:", icon_url=ctx.author.avatar_url)
         for i in range(current_song+1, len(songs)):
