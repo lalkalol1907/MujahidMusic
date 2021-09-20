@@ -113,6 +113,7 @@ class Soprogs:
             isp = False
             return
         isp = False
+        return
         
     async def kick_checker(self, ctx):
         global queue, current_song, stop_voice, songs, isp, allower, sss

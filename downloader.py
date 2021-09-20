@@ -47,8 +47,8 @@ class Downloader():
                             if file1.endswith(".mp3"):
                                 try:
                                     os.remove(f"./music/queue/{file1}")
-                                except FileNotFoundError:
-                                    pass
+                                except FileNotFoundError: pass
+                                except PermissionError as ex: print(ex)
                         os.rename(f"./music/{file}", f"./music/queue/song{self.queue+1}.mp3")
                         self.queue+=1         
                 else:
@@ -66,6 +66,7 @@ class Downloader():
                                 try:
                                     os.remove(f"./music/queue/{file1}")
                                 except FileNotFoundError: pass
+                                except PermissionError as ex: print(ex)
                         os.rename(f"./music/{file}", './music/queue/song0.mp3')
                         self.queue = 0
                 songs.append(Song(self.queue, url, f"{name[:-4]}", pyglet.media.load(f"./music/queue/song{self.queue}.mp3").duration))
