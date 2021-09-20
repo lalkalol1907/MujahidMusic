@@ -22,6 +22,12 @@ cleaner_bool = False
 fscount = 0
 sss = 0   
 
+class Aliases:
+    def __init__(self):
+        self.p = ['play', 'P', 'Play', 'PLAY']
+        self.np = ['NP', 'Np']
+        self.q = ['q', 'Q']
+
 class Soprogs:
     def __init__(self):
         pass
@@ -119,7 +125,7 @@ class Bot:
         fscount += 1
         
     @staticmethod
-    @bot.command(pass_context=True, aliases = ['play', 'P', 'Play', 'PLAY'])
+    @bot.command(pass_context=True, aliases = Aliases().p)
     async def p(ctxx, *, text): # play
    # await ctx.send(arg)
         global queue, isp, kick_checker_bool, songs, allower, cleaner_bool, ctx, sss
@@ -218,7 +224,7 @@ class Bot:
         voice.resume()
     
     @staticmethod
-    @bot.command(pass_context=False, aliases = ['NP', 'Np'])
+    @bot.command(pass_context=False, aliases=Aliases().np)
     async def np(ctxx):
         global ctx, current_song, ctime, long, songs
         ctx = ctxx
@@ -238,7 +244,7 @@ class Bot:
         await ctxx.send("`This function is being developed now`")
     
     @staticmethod
-    @bot.command(pass_context=False)
+    @bot.command(pass_context=False, aliases = Aliases().q)
     async def queue(ctxx):
         global ctx, current_song, songs, queue, fscount
         ctx = ctxx
