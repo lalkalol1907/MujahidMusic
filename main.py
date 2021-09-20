@@ -98,7 +98,7 @@ class Soprogs:
                 if stop_voice_2:
                     stop_voice_2 = False
                     isp = False
-                    sss = ss + 1
+                    sss = ss
                     return
                 if current_song <= queue:
                     ss+=1
@@ -109,7 +109,7 @@ class Soprogs:
             except Exception as ex:
                 print(ex) 
         else:
-            sss = s+1
+            sss = s
             isp = False
             return
         isp = False
