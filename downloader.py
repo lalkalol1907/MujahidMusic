@@ -31,7 +31,7 @@ class Downloader():
             await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}")
         
     async def __download_from_yt_url(self, url):
-        global names, urls, long, numbers
+        global songs
         youtube = pytube.YouTube(url)
         mp3 = youtube.streams.filter(only_audio=True).first()
         mp3.download('./music')
@@ -83,6 +83,9 @@ class Downloader():
             text = text[:len(text)-1] + f" - {track['name']}"
         print(text)
         await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}")
+        
+    async def download_from_vk_url(self, text):
+        pass
         
     
     
