@@ -191,7 +191,7 @@ class Bot:
         queue, current_song, isp, sss = -1, -1, False, 0
         channel = ctx.message.author.voice.channel
         await asyncio.sleep(1)
-        await ("./music/queue")
+        await Soprogs().clear("./music/queue")
         stop_voice = False
         songs.clear()
         voice = get(bot.voice_clients, guild=ctx.guild)
