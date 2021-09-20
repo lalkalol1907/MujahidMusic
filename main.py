@@ -200,11 +200,14 @@ class Bot:
         stop_voice = False
         songs.clear()
         voice = get(bot.voice_clients, guild=ctx.guild)
-        if voice and voice.is_connected():
-            await voice.disconnect()
-            await ctx.send(f"Left `{channel}`")
-        else: 
-            await ctx.send("Not connected to the channel")
+        try:
+            if voice and voice.is_connected():
+                await voice.disconnect()
+                await ctx.send(f"Left `{channel}`")
+            else: 
+                await ctx.send("Not connected to the channel")
+        except AttributeError:
+            await ctxx.send("I'm not connected")
     
     @staticmethod
     @bot.command(pass_context=False)    
@@ -247,14 +250,18 @@ class Bot:
         global ctx, current_song, ctime, long, songs
         ctx = ctxx
         voice = get(bot.voice_clients, guild=ctx.guild)
-        if voice.is_connected():
-            if isp: 
-                song = songs[current_song]
-                await ctx.send(embed=Embeds().NPEmbed(title=song.name, url=song.url, time1 = ctime, time2 = song.long,  ctx = ctxx))
+        try:
+            if voice.is_connected():
+                if isp: 
+                    song = songs[current_song]
+                    await ctx.send(embed=Embeds().NPEmbed(title=song.name, url=song.url, time1 = ctime, time2 = song.long,  ctx = ctxx))
+                else: 
+                    await ctx.send("Nothing is playing now")
             else: 
-                await ctx.send("Nothing is playing now")
-        else: 
-            await ctx.send("Not connected to the channel")
+                await ctx.send("Not connected to the channel")
+        except AttributeError:
+            await ctxx.send("I'm not connected")
+             
         
     @staticmethod    
     @bot.command(pass_context=False)
