@@ -14,7 +14,7 @@ class Embeds:
                 if len(d[i]) == 1:
                     d[i] = f"0{d[i]}"
             return f"{d[0]}:{d[2]}:{d[4]}", f"{d[1]}:{d[3]}:{d[5]}"
-        embed = discord.Embed(title=title, url=url, description=f"{self.__formated_line(time1, time2)}", color=0xFF00FF)
+        embed = discord.Embed(title=title, url=url, description=f"{self.__formated_line(time1, time2)}", color=0xF05C3B)
         embed.set_author(name="Now Playing:", icon_url=f"{ctx.author.avatar_url}")
         embed.set_thumbnail(url=self.__get_tb(title))
         time = __time_format(time1, time2)
@@ -28,7 +28,7 @@ class Embeds:
                 if len(d[i]) == 1:
                     d[i] = f"0{d[i]}"
             return f"{d[0]}:{d[1]}:{d[2]}"
-        embed = discord.Embed(title=title, url=url, color=0x5CFF61)
+        embed = discord.Embed(title=title, url=url, color=0xA2D5C6)
         embed.set_author(name="Added to queue:", icon_url=f"{ctx.author.avatar_url}")
         embed.set_thumbnail(url=self.__get_tb(title))
         embed.add_field(name="Duration:", value=f"`{__time_format(time)}`", inline=True)
@@ -42,7 +42,7 @@ class Embeds:
                 if len(d[i]) == 1:
                     d[i] = f"0{d[i]}"
             return f"{d[0]}:{d[1]}:{d[2]}"
-        embed = discord.Embed(title=title, url=url, color=0x1200DA)
+        embed = discord.Embed(title=title, url=url, color=0x077B8A)
         embed.set_author(name="Playing:", icon_url=f"{ctx.author.avatar_url}")
         embed.set_thumbnail(url=self.__get_tb(title))
         embed.add_field(name="Duration:", value=f"`{__time_format(time)}`", inline=True)
@@ -65,7 +65,7 @@ class Embeds:
                     d[i] = f"0{d[i]}"
             return f"{d[0]}:{d[1]}:{d[2]}"
         
-        embed = discord.Embed(title=f"1) {songs[current_song].name}", url=f"{songs[current_song].url}", description=f"{self.__formated_line(ctime, songs[current_song].long)}\n`Elapsed: {__time_format1(int(songs[current_song].long - ctime))}`", color=0x5C02C2)
+        embed = discord.Embed(title=f"1) {songs[current_song].name}", url=f"{songs[current_song].url}", description=f"{self.__formated_line(ctime, songs[current_song].long)}\n`Elapsed: {__time_format1(int(songs[current_song].long - ctime))}`", color=0x5C3C92)
         embed.set_thumbnail(url=self.__get_tb(songs[current_song].name))
         embed.set_author(name = "Queue:", icon_url=ctx.author.avatar_url)
         for i in range(current_song+1, len(songs)):
