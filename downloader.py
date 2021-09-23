@@ -98,7 +98,6 @@ class Downloader():
     async def vk(self, text):
         login, password = 'login', 'password'
         vk_session = vk_api.VkApi(login, password)
-
         try:
             vk_session.auth()
         except vk_api.AuthError as error_msg:

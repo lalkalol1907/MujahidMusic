@@ -183,8 +183,8 @@ class Bot:
                             already_deleted.append(i)
                         except Exception as ex:
                             print(f"Can't delete, exception {ex}")
-                            if f"{self.bot_number}-song0" in str(ex):
-                                already_deleted.append(0)
+                            if f"{self.bot_number}-song" in str(ex):
+                                already_deleted.append(i)
             await asyncio.sleep(30)  
      
     async def MusicPlayer(self, voice, s = 0):
