@@ -3,8 +3,6 @@ import random, math
 from youtube_search import YoutubeSearch
 
 class Embeds:
-    def __init__(self):
-        pass
     
     def NPEmbed(self, title, url, time1, time2, ctx): 
         def __time_format(time1, time2):
