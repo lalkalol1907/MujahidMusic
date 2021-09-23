@@ -123,7 +123,7 @@ class Bot:
     async def resume(self, ctxx):
         self.ctx = ctxx
         try:
-            voice = get(bot.voice_clients, guild=ctx.guild)
+            voice = get(bot.voice_clients, guild=self.ctx.guild)
             voice.resume()
         except AttributeError:
             await self.ctx.send("I'm not connected")
