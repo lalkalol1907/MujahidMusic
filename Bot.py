@@ -260,3 +260,6 @@ class Bot:
                 self.already_played_mp3.clear()
                 self.allower = True
             await asyncio.sleep(2)
+            
+    async def idle_checker(self):
+        pass
