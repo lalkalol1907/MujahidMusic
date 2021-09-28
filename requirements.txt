@@ -1,0 +1,8 @@
+discord
+youtube_search
+pyglet
+spotipy
+pytube
+validators
+vk_api
+gunicorn
