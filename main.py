@@ -109,4 +109,5 @@ async def loop(ctx, *, text):
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].loop(ctx, text)
         
-bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+def starter():
+    bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
