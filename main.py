@@ -2,6 +2,7 @@ from discord.ext import commands
 from discord.utils import get   
 import discord 
 from Bot import Bot, bot
+from flask import Flask
 
 class Aliases:
     def __init__(self):
@@ -11,6 +12,7 @@ class Aliases:
         self.fs = ['skip', 'Fs', 'FS', 'SKIP', 'Skip']
     
 bots = []
+status = False
 
 async def check_bot(ctx):
     if bots != []:
@@ -108,6 +110,14 @@ async def loop(ctx, *, text):
     else:
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].loop(ctx, text)
-        
-def starter():
-    bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+       
+flask_app = Flask(__name__)
+
+@flask_app.route('/')
+def main():
+    if not status:
+        bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+    return "Bot started"
+
+if __name__ == '__main__':
+    flask_app.run()
