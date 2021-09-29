@@ -1,2 +1,1 @@
-
-web: gunicorn main:starter --log-file=- --log-level=debug
+web: python main.py
