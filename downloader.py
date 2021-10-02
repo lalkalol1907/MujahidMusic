@@ -7,7 +7,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import vk_api
 from vk_api.audio import VkAudio
 from pymediainfo import MediaInfo
-
+import pafy
 
 class Song:
     def __init__(self, number, url, name, long, is_mp3, source):
@@ -46,8 +46,7 @@ class Downloader():
         mp3.download('./music')
         for file in os.listdir("./music"):
             if file.endswith(".mp4"):
-                media_info = MediaInfo.parse(f"./music/{file}")
-                duration = media_info.tracks[0].duration / 1000
+                duration = pafy.new(url).length
                 name = file
                 if self.queue != -1:
                     try:
