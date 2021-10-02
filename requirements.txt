@@ -7,3 +7,4 @@ vk_api
 gunicorn
 bs4
 PyNaCl
+pymediainfo
