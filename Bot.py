@@ -208,7 +208,8 @@ class Bot:
                     pass
                 await self.ctx.send(embed=Embeds().playing(song.name, song.url, int(dur), self.ctx))
                 self.ctime = 0
-                for i in range(int(dur)+3):
+                print(dur)
+                for i in range(int(dur)+1):
                     try:
                         if self.stop_thread is True:
                             voice.stop()

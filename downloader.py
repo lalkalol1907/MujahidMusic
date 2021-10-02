@@ -44,9 +44,10 @@ class Downloader():
         youtube = pytube.YouTube(url)
         mp3 = youtube.streams.filter(only_audio=True).first()
         mp3.download('./music')
+        h, m, s = map(int, pafy.new(url).duration.split(":"))
+        duration = h*3600 + m*60 + s
         for file in os.listdir("./music"):
-            if file.endswith(".mp4"):
-                duration = pafy.new(url).length
+            if file.endswith(".mp4"):  
                 name = file
                 if self.queue != -1:
                     try:
