@@ -6,3 +6,4 @@ pytube
 validators
 vk_api
 gunicorn
+bs4
