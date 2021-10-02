@@ -7,6 +7,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import vk_api
 from vk_api.audio import VkAudio
+from pymediainfo import MediaInfo
 
 
 class Song:
@@ -46,6 +47,8 @@ class Downloader():
         mp3.download('./music')
         for file in os.listdir("./music"):
             if file.endswith(".mp4"):
+                media_info = MediaInfo.parse(f"./music/{file}")
+                duration = media_info.tracks[0].duration / 1000
                 name = file
                 if self.queue != -1:
                     try:
@@ -78,7 +81,7 @@ class Downloader():
                                 except PermissionError as ex: print(ex)
                         os.rename(f"./music/{file}", f"./music/queue/{self.bot}-song0.mp3")
                         self.queue = 0
-                songs.append(Song(self.queue, url, f"{name[:-4]}", pyglet.media.load(f"./music/queue/{self.bot}-song{self.queue}.mp3").duration, True, source))
+                songs.append(Song(self.queue, url, f"{name[:-4]}", duration, True, source))
                 return songs
     
     async def __download_from_spotify_url(self, url, songs):
