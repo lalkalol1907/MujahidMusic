@@ -2,7 +2,6 @@ import os
 import pytube
 import validators
 from youtube_search import YoutubeSearch
-import pyglet
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import vk_api

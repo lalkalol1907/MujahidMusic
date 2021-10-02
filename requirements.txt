@@ -1,6 +1,5 @@
 discord
 youtube_search
-pyglet
 spotipy
 pytube
 validators
