@@ -209,9 +209,8 @@ class Bot:
                 song = self.songs[ss]
                 if song.is_mp3:
                     dur = song.long
-                    async def playy(ss):
-                        voice.play(discord.FFmpegPCMAudio(f"./music/queue/{self.bot_number}-song{ss}.mp3"))
-                    asyncio.get_event_loop().create_task(playy(ss))
+                    data = discord.FFmpegPCMAudio(source=f"./music/queue/{self.bot_number}-song{ss}.mp3")
+                    voice.play(data)
                     print(f"{self.bot_number} playing {song.name}")
                     self.already_played_mp3.append(ss)
                 else:
@@ -237,6 +236,7 @@ class Bot:
                     finally:
                         pass
                     self.ctime += 1
+                    #print(f"cur = {self.ctime}")
                     await asyncio.sleep(1)
                 if self.stop_voice_2:
                     self.stop_voice_2 = False

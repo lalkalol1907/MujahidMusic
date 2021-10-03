@@ -1,4 +1,3 @@
-import os
 import pytube
 import validators
 from youtube_search import YoutubeSearch
@@ -8,7 +7,8 @@ import vk_api
 from vk_api.audio import VkAudio
 import pafy
 import http
-import math
+import threading
+import time
 
 class Song:
     def __init__(self, number, url, name, long, is_mp3, source, ctx):
@@ -37,51 +37,22 @@ class Downloader():
             except IndexError: return [], "empty"
         
     async def __download_from_yt_url(self, url, source, songs):
-        if self.bot>0:
-            ln = math.ceil(math.log10(self.bot))
-        else: ln = 1
         youtube = pytube.YouTube(url)
         try: 
-            youtube.streams.filter(only_audio=True).first().download('./music')
+            f = youtube.streams.filter(only_audio=True).first()
         except http.client.IncompleteRead:  
-            youtube.streams.filter(only_audio=True).first().download('./music')
+            f = youtube.streams.filter(only_audio=True).first()
         except:
             return [], "link"
+        a = lambda: f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
+        th1 = threading.Thread(target=a)
+        th1.start()
+        while th1.is_alive(): time.sleep(0.8)
+        self.queue += 1
         h, m, s = map(int, pafy.new(url).duration.split(":"))
         duration = h*3600 + m*60 + s
-        for file in os.listdir("./music"):
-            if file.endswith(".mp4"):  
-                name = file
-                if self.queue != -1:
-                    try:
-                        os.rename(f"./music/{file}", f"./music/queue/{self.bot}-song{self.queue+1}.mp3")
-                        self.queue+=1
-                    except FileExistsError:
-                        for file1 in os.listdir("./music/queue"):
-                            if file1.endswith(".mp3") and int(file1[0:ln]) == self.bot:
-                                try: os.remove(f"./music/queue/{file1}")
-                                except FileNotFoundError: pass
-                                except PermissionError as ex: print(ex)
-                        os.rename(f"./music/{file}", f"./music/queue/{self.bot}-song{self.queue+1}.mp3")
-                        self.queue+=1         
-                else:
-                    try:
-                        for file2 in os.listdir("./music/queue"):
-                            try:
-                                if "song" in file and int(file2[0:ln]) == self.bot: os.remove(f"./music/queue/{file2}")
-                            except FileNotFoundError: pass
-                        os.rename(f"./music/{file}", f"./music/queue/{self.bot}-song0.mp3")
-                        self.queue = 0
-                    except FileExistsError:
-                        for file1 in os.listdir("./music/queue"):
-                            if file1.endswith(".mp3") and int(file1[0:ln]) == self.bot:
-                                try: os.remove(f"./music/queue/{file1}")
-                                except FileNotFoundError: pass
-                                except PermissionError as ex: print(ex)
-                        os.rename(f"./music/{file}", f"./music/queue/{self.bot}-song0.mp3")
-                        self.queue = 0
-                songs.append(Song(self.queue, url, f"{name[:-4]}", duration, True, source, self.ctx))
-                return songs, "ok"
+        songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx))
+        return songs, "ok"
     
     async def __download_from_spotify_url(self, url, songs):
         session = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(client_id="6a3124a2b3df4275a177a80104f534d0", client_secret="704142bf3e914d24b4a45bd5df087ed4"))
