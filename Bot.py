@@ -5,6 +5,7 @@ from discord.utils import get
 import asyncio
 from downloader import *
 from embeds import Embeds
+import math
 
 bot = commands.Bot(command_prefix='$')   
 
@@ -20,6 +21,7 @@ class Bot:
         self.kick_checker_bool = False
         self.allower = False    
         self.cleaner_bool = False
+        self.idle_bool = False
         self.fscount = 0
         self.sss = 0
         self.already_played_mp3 = []
@@ -43,27 +45,37 @@ class Bot:
         if voice and voice.is_connected():
             await voice.move_to(channel)
         else:
-            voice = await channel.connect()
-            await self.ctx.send(f"Connected to `#{channel}`")
-        dw = Downloader(self.queue, self.ctx, self.bot_number)
-        self.songs = await dw.analyze(text, self.songs)
-        self.queue = dw.queue        
-        if self.isp:
-            song = self.songs[self.queue]
-            await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.queue, self.current_song))
-            pass
-        if not self.kick_checker_bool:
-            asyncio.get_event_loop().create_task(self.kick_checker())
-            self.kick_checker_bool = True
-            self.allower = True    
-        if not self.isp:
-            #print("isp changed")    
-            self.isp = True
-            asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            print("after")
-        if not self.cleaner_bool:
-            asyncio.get_event_loop().create_task(self.cleaner())
-            self.cleaner_bool = True
+            try:
+                voice = await channel.connect()
+                await self.ctx.send(f"Connected to `#{channel}`")
+            except:
+                await voice.move_to(channel)
+        dw = Downloader(self.queue, self.ctx, self.bot_number, self.ctx)
+        self.songs, stat = await dw.analyze(text, self.songs)
+        if stat == "ok":
+            self.queue = dw.queue        
+            if self.isp:
+                song = self.songs[self.queue]
+                await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.queue, self.current_song))
+                print(f"song {song.name} added to queue, {song.url}")
+                pass
+            if not self.kick_checker_bool:
+                asyncio.get_event_loop().create_task(self.kick_checker())
+                self.kick_checker_bool = True
+                self.allower = True    
+            if not self.isp:   
+                self.isp = True
+                asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+            if not self.cleaner_bool:
+                asyncio.get_event_loop().create_task(self.cleaner())
+                self.cleaner_bool = True
+            if not self.idle_bool:
+                asyncio.get_event_loop().create_task(self.idle_checker())
+                self.idle_bool = True
+        elif stat == "empty":
+            await ctx.send("No results for your querry((")
+        elif stat == "link":
+            await ctx.send("There's an error. Your link is incorrect")
             
     async def vk(self, ctxx, text):
         self.ctx = ctxx
@@ -160,14 +172,7 @@ class Bot:
         if [] != os.listdir(path):
                 try:
                     for file in os.listdir(path):
-                        if self.bot_number < 10:
-                            ln = 1
-                        elif self.bot_number < 100:
-                            ln = 2
-                        elif self.bot_number < 1000:
-                            ln = 3
-                        else: ln = 4
-                        if file.endswith(".mp3") and int(file[0:ln]) == self.bot_number:
+                        if file.endswith(".mp3") and int(file[0:math.ceil(math.log10(self.bot_number))]) == self.bot_number:
                             os.remove(f"{path}/{file}")
                 except: pass
                 
@@ -188,7 +193,6 @@ class Bot:
             await asyncio.sleep(30)  
      
     async def MusicPlayer(self, voice, s = 0):
-        print("runned")
         self.stop_voice_2 = False
         print(len(self.songs))
         for ss in range(s, len(self.songs)): 
@@ -199,24 +203,30 @@ class Bot:
                     self.current_song-=1; break
                 voice.stop()
                 song = self.songs[ss]
-                print(song)
                 if song.is_mp3:
                     dur = song.long
-                    voice.play(discord.FFmpegPCMAudio(f"./music/queue/{self.bot_number}-song{ss}.mp3"))
+                    try:
+                        voice.play(discord.FFmpegPCMAudio(f"./music/queue/{self.bot_number}-song{ss}.mp3"))
+                    except:
+                        await song.requestctx.send("Sorry, I have an error while playing :(")
+                        ss+=1
+                        await self.MusicPlayer(voice, ss)
+                        self.isp = False
+                        return
+                    print(f"{self.bot_number} playing {song.name}")
                     self.already_played_mp3.append(ss)
                 else:
                     pass
-                await self.ctx.send(embed=Embeds().playing(song.name, song.url, int(dur), self.ctx))
+                await song.requestctx.send(embed=Embeds().playing(song.name, song.url, int(dur), song.requestctx))
                 self.ctime = 0
                 print(dur)
-                for i in range(int(dur)+1):
+                for i in range(int(dur)):
                     try:
                         if self.stop_thread is True:
                             voice.stop()
                             self.stop_thread = False
-                            print("stopped")
                             ss+=1
-                            print("rec1")
+                            print(f"{self.bot_number} force skipped song {song.name}")
                             await self.MusicPlayer(voice, ss)
                             self.isp = False
                             return
@@ -263,4 +273,16 @@ class Bot:
             await asyncio.sleep(2)
             
     async def idle_checker(self):
-        pass
+        counter = 0
+        while True:
+            if self.isp: 
+                counter = 0
+            elif counter >= 120:
+                counter+=1
+                asyncio.sleep(1)
+            else:
+                voice = get(bot.voice_clients, guild=self.ctx.guild)
+                if voice:
+                    if voice.is_connected():
+                        voice.disconnect()
+                        await self.ctx.send("Disconnected due to inactivity")
