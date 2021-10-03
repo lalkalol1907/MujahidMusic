@@ -36,8 +36,10 @@ class Downloader():
             try: return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "youtube", songs)
             except IndexError: return [], "empty"
         
-    async def __download_from_yt_url(self, url, source, songs, ctx):
-        ln = math.ceil(math.log10(self.bot))
+    async def __download_from_yt_url(self, url, source, songs):
+        if self.bot>0:
+            ln = math.ceil(math.log10(self.bot))
+        else: ln = 1
         youtube = pytube.YouTube(url)
         try: 
             youtube.streams.filter(only_audio=True).first().download('./music')
@@ -78,7 +80,7 @@ class Downloader():
                                 except PermissionError as ex: print(ex)
                         os.rename(f"./music/{file}", f"./music/queue/{self.bot}-song0.mp3")
                         self.queue = 0
-                songs.append(Song(self.queue, url, f"{name[:-4]}", duration, True, source, ctx))
+                songs.append(Song(self.queue, url, f"{name[:-4]}", duration, True, source, self.ctx))
                 return songs, "ok"
     
     async def __download_from_spotify_url(self, url, songs):

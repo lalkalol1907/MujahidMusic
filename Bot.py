@@ -37,6 +37,7 @@ class Bot:
             self.fscount += 1
         else:
             await self.ctx.send("There's nothing to skip")
+            
         
     async def p(self, ctx, text): # play
         self.ctx = ctx
@@ -50,7 +51,7 @@ class Bot:
                 await self.ctx.send(f"Connected to `#{channel}`")
             except:
                 await voice.move_to(channel)
-        dw = Downloader(self.queue, self.ctx, self.bot_number, self.ctx)
+        dw = Downloader(self.queue, self.ctx, self.bot_number)
         self.songs, stat = await dw.analyze(text, self.songs)
         if stat == "ok":
             self.queue = dw.queue        
@@ -172,6 +173,9 @@ class Bot:
         if [] != os.listdir(path):
                 try:
                     for file in os.listdir(path):
+                        if self.bot_number>0:
+                            ln = math.ceil(math.log10(self.bot))
+                        else: ln = 1
                         if file.endswith(".mp3") and int(file[0:math.ceil(math.log10(self.bot_number))]) == self.bot_number:
                             os.remove(f"{path}/{file}")
                 except: pass
@@ -277,12 +281,16 @@ class Bot:
         while True:
             if self.isp: 
                 counter = 0
-            elif counter >= 120:
+                await asyncio.sleep(3)
+            elif counter < 40:
                 counter+=1
-                asyncio.sleep(1)
+                await asyncio.sleep(3)
             else:
                 voice = get(bot.voice_clients, guild=self.ctx.guild)
                 if voice:
                     if voice.is_connected():
-                        voice.disconnect()
+                        await voice.disconnect()
                         await self.ctx.send("Disconnected due to inactivity")
+                        self.queue, self.current_song, self.isp, self.sss = -1, -1, False, 0
+                        self.songs.clear()
+                        self.already_played_mp3.clear()
