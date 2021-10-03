@@ -176,7 +176,7 @@ class Bot:
                         if self.bot_number>0:
                             ln = math.ceil(math.log10(self.bot))
                         else: ln = 1
-                        if file.endswith(".mp3") and int(file[0:math.ceil(math.log10(self.bot_number))]) == self.bot_number:
+                        if file.endswith(".mp3") and int(file[0:ln]) == self.bot_number:
                             os.remove(f"{path}/{file}")
                 except: pass
                 
@@ -209,14 +209,9 @@ class Bot:
                 song = self.songs[ss]
                 if song.is_mp3:
                     dur = song.long
-                    try:
+                    async def playy(ss):
                         voice.play(discord.FFmpegPCMAudio(f"./music/queue/{self.bot_number}-song{ss}.mp3"))
-                    except:
-                        await song.requestctx.send("Sorry, I have an error while playing :(")
-                        ss+=1
-                        await self.MusicPlayer(voice, ss)
-                        self.isp = False
-                        return
+                    asyncio.get_event_loop().create_task(playy(ss))
                     print(f"{self.bot_number} playing {song.name}")
                     self.already_played_mp3.append(ss)
                 else:
@@ -267,14 +262,16 @@ class Bot:
         print("kickchecker started")
         while True:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
-            if not voice and self.allower:
+            if not voice and self.allower:  
                 self.queue, self.current_song, self.isp, self.sss = -1, -1, False, 0
                 await asyncio.sleep(1)
+                print("kicked")
                 await self.clear("./music/queue")
                 self.songs.clear()
                 self.already_played_mp3.clear()
+                self.already_played_mp3.clear()
                 self.allower = True
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
             
     async def idle_checker(self):
         counter = 0
