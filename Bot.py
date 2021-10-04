@@ -7,7 +7,7 @@ from downloader import *
 from embeds import Embeds
 import math
 
-bot = commands.Bot(command_prefix='$')   
+bot = commands.Bot(command_prefix='$', help_command=None)   
 
 class Bot:
     def __init__(self, num, ctx):
@@ -82,7 +82,7 @@ class Bot:
                 asyncio.get_event_loop().create_task(self.cleaner())
                 self.cleaner_bool = True
             if not self.idle_bool:
-                asyncio.get_event_loop().create_task(self.idle_checker())
+                #asyncio.get_event_loop().create_task(self.idle_checker())
                 self.idle_bool = True
         elif stat == "empty":
             await ctx.send("No results for your querry((")
@@ -284,17 +284,17 @@ class Bot:
                 self.allower = True
             await asyncio.sleep(1)
             
-    async def idle_checker(self):
+    """async def idle_checker(self):
         counter = 0
         while True:
+        voice = get(bot.voice_clients, guild=self.ctx.guild)
             if self.isp: 
                 counter = 0
                 await asyncio.sleep(3)
-            elif counter < 40:
+            elif counter < 40 and voice.is_connected():
                 counter+=1
                 await asyncio.sleep(3)
             else:
-                voice = get(bot.voice_clients, guild=self.ctx.guild)
                 if voice:
                     if voice.is_connected():
                         #await voice.disconnect()
@@ -302,3 +302,4 @@ class Bot:
                         self.queue, self.current_song, self.isp, self.sss = -1, -1, False, 0
                         self.songs.clear()
                         self.already_played_mp3.clear()
+                counter = 0"""
