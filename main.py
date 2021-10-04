@@ -133,6 +133,15 @@ while True:
             bots.append(Bot(len(bots), ctx))
             await bots[len(bots)-1].loop(ctx, text)
             
+    @bot.command(pass_context=False)
+    async def connect(ctx):
+        already_is, bot_index = await check_bot(ctx)
+        if already_is:
+            await bots[bot_index].connect(ctx)
+        else:
+            bots.append(Bot(len(bots), ctx))
+            await bots[len(bots)-1].connect(ctx)
+            
     bot.loop.create_task(task())
     try:
         bot.loop.run_until_complete(bot.start('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))

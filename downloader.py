@@ -47,7 +47,7 @@ class Downloader():
         a = lambda: f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
         th1 = threading.Thread(target=a)
         th1.start()
-        while th1.is_alive(): time.sleep(0.5)
+        while th1.is_alive(): time.sleep(0.3)
         self.queue += 1
         h, m, s = map(int, pafy.new(url).duration.split(":"))
         duration = h*3600 + m*60 + s
