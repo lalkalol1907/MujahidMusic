@@ -112,4 +112,5 @@ async def loop(ctx, *, text):
         
 while True:        
     print("bot restarted")
-    bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+    asyncio.get_event_loop().run_until_complete(bot.start('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))
+    print("bot died")
