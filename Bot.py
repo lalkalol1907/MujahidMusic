@@ -286,8 +286,8 @@ class Bot:
                 voice = get(bot.voice_clients, guild=self.ctx.guild)
                 if voice:
                     if voice.is_connected():
-                        await voice.disconnect()
-                        await self.ctx.send("Disconnected due to inactivity")
+                        #await voice.disconnect()
+                        #await self.ctx.send("Disconnected due to inactivity")
                         self.queue, self.current_song, self.isp, self.sss = -1, -1, False, 0
                         self.songs.clear()
                         self.already_played_mp3.clear()

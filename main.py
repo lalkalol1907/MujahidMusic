@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord.utils import get   
-import discord 
+import asyncio
 from Bot import Bot, bot
 
 class Aliases:
@@ -109,5 +109,7 @@ async def loop(ctx, *, text):
     else:
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].loop(ctx, text)
-
-bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+        
+while True:        
+    print("bot restarted")
+    bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
