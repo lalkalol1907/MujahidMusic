@@ -7,8 +7,6 @@ import vk_api
 from vk_api.audio import VkAudio
 import pafy
 import http
-import threading
-import time
 
 class Song:
     def __init__(self, number, url, name, long, is_mp3, source, ctx):
@@ -40,17 +38,30 @@ class Downloader():
         youtube = pytube.YouTube(url)
         try: 
             f = youtube.streams.filter(only_audio=True).first()
-        except http.client.IncompleteRead:  
-            f = youtube.streams.filter(only_audio=True).first()
+        except http.client.IncompleteRead:
+            try:  
+                f = youtube.streams.filter(only_audio=True).first()
+            except: return [], "link"
         except:
             return [], "link"
-        a = lambda: f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
-        th1 = threading.Thread(target=a)
-        th1.start()
-        while th1.is_alive(): time.sleep(0.3)
+        def a():
+            counter = 0
+            while counter < 10:
+                try:
+                    f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
+                    return True
+                except:
+                    counter += 1
+            return False
+        stat = a()
+        if not stat:
+            return [], "link"
         self.queue += 1
-        h, m, s = map(int, pafy.new(url).duration.split(":"))
-        duration = h*3600 + m*60 + s
+        try:
+            h, m, s = map(int, pafy.new(url).duration.split(":"))
+            duration = h*3600 + m*60 + s
+        except:
+            return [], "link"
         songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx))
         return songs, "ok"
     

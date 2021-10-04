@@ -142,6 +142,10 @@ while True:
             bots.append(Bot(len(bots), ctx))
             await bots[len(bots)-1].connect(ctx)
             
+    @bot.command(pass_context=True)
+    async def v(ctx, *, value):
+        pass 
+            
     bot.loop.create_task(task())
     try:
         bot.loop.run_until_complete(bot.start('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))
