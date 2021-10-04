@@ -143,6 +143,15 @@ while True:
             await bots[len(bots)-1].connect(ctx)
             
     @bot.command(pass_context=True)
+    async def channel(ctx, *, text):
+        already_is, bot_index = await check_bot(ctx)
+        if already_is:
+            await bots[bot_index].channel(ctx, text)
+        else:
+            bots.append(Bot(len(bots), ctx))
+            await bots[len(bots)-1].channel(ctx, text)
+            
+    @bot.command(pass_context=True)
     async def v(ctx, *, value):
         pass 
             

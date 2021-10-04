@@ -37,6 +37,44 @@ class Bot:
         else:
             await self.ctx.send("There's nothing to skip")
             
+    async def connect(self, ctx):
+        self.ctx = ctx
+        try:
+            channel = self.ctx.message.author.voice.channel
+        except AttributeError:
+            await self.ctx.send("You are not connected to any channel, connecting to default channel")
+            channel = "Основной"
+        print(f"channel = {channel}")
+        voice = get(bot.voice_clients, guild=self.ctx.guild)
+        if voice and voice.is_connected():
+            try:
+                await voice.move_to(channel)
+            except:
+                await self.ctx.send("Can't connect")
+        else:
+            try:
+                voice = await channel.connect()
+                await self.ctx.send(f"Connected to `#{channel}`")
+            except:
+                try:
+                    await voice.move_to(channel)
+                except:
+                    await self.ctx.send("Can't connect")
+                    
+    async def channel(self, ctx, ch):
+        self.ctx = ctx
+        try:
+            channel = ch
+            voice = get(bot.voice_clients, guild = self.ctx.guild)
+            if voice and voice.is_connected():
+                try:
+                    await voice.move_to(channel)
+                except:
+                    await ctx.send("Incorrect channel")
+            else:
+                voice = await channel.connect()
+        except:
+            await self.ctx.send("Incorrect channel")
         
     async def p(self, ctx, text): # play
         self.ctx = ctx
