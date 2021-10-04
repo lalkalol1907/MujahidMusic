@@ -41,16 +41,27 @@ class Bot:
         
     async def p(self, ctx, text): # play
         self.ctx = ctx
-        channel = self.ctx.message.author.voice.channel
+        try:
+            channel = self.ctx.message.author.voice.channel
+        except AttributeError:
+            await self.ctx.send("You are not connected to any channel, connecting to default channel")
+            channel = "Основной"
+        print(f"channel = {channel}")
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         if voice and voice.is_connected():
-            await voice.move_to(channel)
+            try:
+                await voice.move_to(channel)
+            except:
+                await self.ctx.send("Can't connect")
         else:
             try:
                 voice = await channel.connect()
                 await self.ctx.send(f"Connected to `#{channel}`")
             except:
-                await voice.move_to(channel)
+                try:
+                    await voice.move_to(channel)
+                except:
+                    await self.ctx.send("Can't connect")
         dw = Downloader(self.queue, self.ctx, self.bot_number)
         self.songs, stat = await dw.analyze(text, self.songs)
         if stat == "ok":

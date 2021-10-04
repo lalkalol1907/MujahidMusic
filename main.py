@@ -110,7 +110,7 @@ async def loop(ctx, *, text):
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].loop(ctx, text)
         
-while True:        
-    print("bot restarted")
-    asyncio.get_event_loop().run_until_complete(bot.start('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))
-    print("bot died")
+while True:
+    print("Bot restarting")
+    bot.loop.run_until_complete(bot.start('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))
+    bot = commands.Bot(command_prefix='$', loop=bot.loop)   
