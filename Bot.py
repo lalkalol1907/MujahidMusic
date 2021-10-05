@@ -6,8 +6,9 @@ import asyncio
 from downloader import *
 from embeds import Embeds
 import math
+import datetime
 
-bot = commands.Bot(command_prefix='$', help_command=None)   
+bot = commands.Bot(command_prefix='$')   
 
 class Bot:
     def __init__(self, num, ctx):
@@ -29,13 +30,25 @@ class Bot:
         self.bot_number = num
         self.server = ctx.message.guild  
     
+    def __log(self, arg = ""):
+        try:
+            arg += f"\nqueue: {self.queue}\nisp: {self.isp}\ncursong: {self.current_song}\nsss: {self.sss}\nsongs: {self.songs[self.queue].title}\nbools: self.stop_thread: {self.stop_thread} self.stop_voice: {self.stop_voice} "
+            print(f"{datetime.datetime.now()}\n{self.bot_number}-Bot: {arg}\n\n")
+        except:
+            arg += f"\nqueue: {self.queue}\nisp: {self.isp}\ncursong: {self.current_song}\nsss: {self.sss}\nbools: self.stop_thread: {self.stop_thread} self.stop_voice: {self.stop_voice} "
+            print(f"{datetime.datetime.now()}\n{self.bot_number}-Bot: {arg}\n\n")
+    
     async def fs(self, ctx):
+        self.__log("Skipped")
         self.ctx = ctx
         if self.isp:
             self.stop_thread = True
             self.fscount += 1
         else:
             await self.ctx.send("There's nothing to skip")
+            
+    async def __check_members_in_channels(self):
+        pass
             
     async def connect(self, ctx):
         self.ctx = ctx
@@ -44,7 +57,7 @@ class Bot:
         except AttributeError:
             await self.ctx.send("You are not connected to any channel, connecting to default channel")
             channel = "Основной"
-        print(f"channel = {channel}")
+        self.__log(f"Connected channel = {channel}")
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         if voice and voice.is_connected():
             try:
@@ -83,7 +96,7 @@ class Bot:
         except AttributeError:
             await self.ctx.send("You are not connected to any channel, connecting to default channel")
             channel = "Основной"
-        print(f"channel = {channel}")
+        self.__log(f"Bot: p: channel = {channel}")
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         if voice and voice.is_connected():
             try:
@@ -99,14 +112,18 @@ class Bot:
                     await voice.move_to(channel)
                 except:
                     await self.ctx.send("Can't connect")
+        await self.ctx.send(f"Searching and downloading: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number)
         self.songs, stat = await dw.analyze(text, self.songs)
         if stat == "ok":
             self.queue = dw.queue        
             if self.isp:
                 song = self.songs[self.queue]
-                await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.queue, self.current_song))
-                print(f"song {song.name} added to queue, {song.url}")
+                if "playlist" in text:
+                    pass
+                else:
+                    await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.queue, self.current_song))
+                self.__log(f"song {song.name} added to queue, {song.url}")
                 pass
             if not self.kick_checker_bool:
                 asyncio.get_event_loop().create_task(self.kick_checker())
@@ -138,6 +155,7 @@ class Bot:
         voice.play(discord.FFmpegOpusAudio("https://cs1-82v4.vkuseraudio.net/p24/2d8c304bd0442e.mp3?extra=cfihgRks4dKdRugxjILr-nIzgJowmNzJGLcTRVpAcLVluOiQGm7y8qvaG7OVyFiSM1P8TDfzOgmzsztIeHjvtqMT5APOHu_SWQOKYUpy6bm5FCqGjgK7gVFTsdrcF1BHGMjTyVe_MhVpTdFe336phVNUvw&long_chunk=1"))
             
     async def leave(self, ctxx):
+        self.__log("leave")
         self.ctx = ctxx
         self.stop_voice = True
         self.queue, self.current_song, self.isp, self.sss = -1, -1, False, 0
@@ -158,6 +176,7 @@ class Bot:
             await self.ctx.send("I'm not connected")
     
     async def stop(self, ctxx):
+        self.__log("stop")
         self.ctx = ctxx
         self.stop_voice = True
         await asyncio.sleep(1)
@@ -168,6 +187,7 @@ class Bot:
         self.already_played_mp3.clear()
     
     async def pause(self, ctxx):
+        self.__log("pause")
         self.ctx = ctxx
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         try:
@@ -179,6 +199,7 @@ class Bot:
             await self.ctx.send("I'm not connected")
         
     async def resume(self, ctxx):
+        self.__log("resume")
         self.ctx = ctxx
         try:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
@@ -187,6 +208,7 @@ class Bot:
             await self.ctx.send("I'm not connected")
     
     async def np(self, ctxx):
+        self.__log("now playing")
         self.ctx = ctxx
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         try:
@@ -206,6 +228,7 @@ class Bot:
         await ctxx.send("`This function is being developed now`")
     
     async def queue1(self, ctxx):
+        self.__log("queue")
         self.ctx = ctxx
         if self.queue == -1:
             await self.ctx.send("There is nothing to play!")
@@ -227,7 +250,6 @@ class Bot:
                 
     async def cleaner(self):
         already_deleted = []
-        print("cleaner started")
         while True:
             if self.current_song > 0:
                 for i in self.already_played_mp3:
@@ -235,15 +257,17 @@ class Bot:
                         try:
                             os.remove(f"./music/queue/{self.bot_number}-song{i}.mp3")
                             already_deleted.append(i)
+                            self.__log("cleaner try")
                         except Exception as ex:
                             print(f"Can't delete, exception {ex}")
                             if f"{self.bot_number}-song" in str(ex):
                                 already_deleted.append(i)
+                            self.__log("cleaner except")
             await asyncio.sleep(30)  
      
     async def MusicPlayer(self, voice, s = 0):
         self.stop_voice_2 = False
-        print(len(self.songs))
+        self.__log()
         for ss in range(s, len(self.songs)): 
             self.sss = ss
             try:
@@ -256,20 +280,18 @@ class Bot:
                     dur = song.long
                     data = discord.FFmpegPCMAudio(source=f"./music/queue/{self.bot_number}-song{ss}.mp3")
                     voice.play(data)
-                    print(f"{self.bot_number} playing {song.name}")
+                    self.__log(f"{self.bot_number} playing {song.name}")
                     self.already_played_mp3.append(ss)
                 else:
                     pass
                 await song.requestctx.send(embed=Embeds().playing(song.name, song.url, int(dur), song.requestctx))
                 self.ctime = 0
-                print(dur)
                 for i in range(int(dur)):
                     try:
                         if self.stop_thread is True:
                             voice.stop()
                             self.stop_thread = False
                             ss+=1
-                            print(f"{self.bot_number} force skipped song {song.name}")
                             await self.MusicPlayer(voice, ss)
                             self.isp = False
                             return
@@ -290,7 +312,6 @@ class Bot:
                     return
                 if self.current_song <= self.queue:
                     ss+=1
-                    print("rec2")
                     await self.MusicPlayer(voice, ss)
                     self.isp = False
                     return
@@ -304,7 +325,6 @@ class Bot:
         return
         
     async def kick_checker(self):
-        print("kickchecker started")
         while True:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
             if not voice and self.allower:  
@@ -317,3 +337,18 @@ class Bot:
                 self.already_played_mp3.clear()
                 self.allower = True
             await asyncio.sleep(1)
+            
+    async def idle_checker(self):
+        counter = 0
+        while True:
+            voice = get(bot.voice_clients, guild=self.ctx.guild)
+            if self.isp:
+                counter = 0
+            elif counter < 40:
+                counter+=1
+            else:
+                if voice and voice.is_connected():
+                    await voice.disconnect()
+                    await self.ctx.send(f"Disconnected due to inactivity")
+                counter = 0
+            await asyncio.sleep(3)

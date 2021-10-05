@@ -32,6 +32,9 @@ class Embeds:
         embed.add_field(name="Duration:", value=f"`{__time_format(time)}`", inline=True)
         embed.add_field(name="Position in queue:", value=f"`{queue-current_song}`", inline=True)
         return embed
+    def added_to_queue_playlist(self, url, ctx, queue, current_song):
+        # embed = discord.Embed(title=title)
+        pass
     
     def playing(self, title, url, time, ctx):
         def __time_format(time):

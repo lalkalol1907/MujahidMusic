@@ -7,6 +7,10 @@ import vk_api
 from vk_api.audio import VkAudio
 import pafy
 import http
+import re
+from pytube import Playlist
+import threading
+import asyncio
 
 class Song:
     def __init__(self, number, url, name, long, is_mp3, source, ctx):
@@ -35,6 +39,35 @@ class Downloader():
             except IndexError: return [], "empty"
         
     async def __download_from_yt_url(self, url, source, songs):
+        if "playlist" in url:
+            print("playlist")
+            playlist = Playlist(url)
+            playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
+            print(len(playlist.video_urls))
+            def downloader(url1):
+                counter = 0
+                youtube = pytube.YouTube(url1)
+                f = youtube.streams.filter(only_audio=True).first()
+                h, m, s = map(int, pafy.new(url1).duration.split(":"))
+                duration = h*3600 + m*60 + s
+                while counter < 3:
+                    try:
+                        f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
+                        songs.append(Song(self.queue, url1, f"{pafy.new(url1).title}", duration, True, source, self.ctx))
+                        self.queue+=1
+                        break
+                    except: counter += 1
+            th = [] 
+            for i in range(len(playlist.video_urls)):
+                th.append(threading.Thread(downloader(playlist.video_urls[i])))
+                th[i].start()
+            while True:
+                count = 0
+                for i in range(len(th)):
+                    count+=th[i].is_alive()
+                if count == 0:    
+                    return songs, "ok"
+                await asyncio.sleep(1)
         youtube = pytube.YouTube(url)
         try: 
             f = youtube.streams.filter(only_audio=True).first()
