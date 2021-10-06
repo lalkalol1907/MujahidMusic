@@ -94,7 +94,7 @@ class Bot:
     async def p(self, ctx, text): # play
         self.ctx = ctx
         if 'playlist' in text and validators.url(text):
-            await asyncio.get_event_loop().create_task(self.__playlist(ctx, text))
+            asyncio.get_event_loop().create_task(self.__playlist(ctx, text))
             return
         try:
             channel = self.ctx.message.author.voice.channel
@@ -192,8 +192,9 @@ class Bot:
                     if stat == "ok":
                         if not self.isp:   
                             self.isp = True
-                            voice = get(bot.voice_clients, guild=self.ctx.guild)
+                            print(self.isp)
                             asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+                        await asyncio.sleep(2)
             await self.ctx.send(f"added to queue {self.queue - sq} songs")
             
     
@@ -242,6 +243,7 @@ class Bot:
                     if not self.isp:   
                         self.isp = True
                         asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+                    await asyncio.sleep(2)
             else:
                 await self.ctx.send("This function can play only urls")
         await self.ctx.send(f"added {self.queue - sq} songs")

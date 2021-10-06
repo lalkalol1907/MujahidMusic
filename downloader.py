@@ -72,38 +72,6 @@ class Downloader():
         songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx))
         return songs, "ok"
     
-    async def __download_playlist(self, url, source, rng, songs):
-        print("playlist")
-        playlist = Playlist(url)
-        playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
-        print(len(playlist.video_urls))
-        def downloader(url1):
-            counter = 0
-            youtube = pytube.YouTube(url1)
-            f = youtube.streams.filter(only_audio=True).first()
-            h, m, s = map(int, pafy.new(url1).duration.split(":"))
-            duration = h*3600 + m*60 + s
-            while counter < 3:
-                try:
-                    f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
-                    songs.append(Song(self.queue, url1, f"{pafy.new(url1).title}", duration, True, source, self.ctx))
-                    self.queue+=1
-                    break
-                except: counter += 1
-        th = [] 
-        if rng[1] > len(playlist.video_urls):
-            rng[1] = len(playlist.video_urls)
-        for i in range(rng[0]-1, rng[1]-1):
-            th.append(threading.Thread(downloader(playlist.video_urls[i])))
-            th[i].start()
-        while True:
-            count = 0
-            for i in range(len(th)):
-                count+=th[i].is_alive()
-            if count == 0:    
-                return songs, "ok"
-            await asyncio.sleep(1)
-    
     async def __download_from_spotify_url(self, url, songs):
         session = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(client_id="6a3124a2b3df4275a177a80104f534d0", client_secret="86870ba523f2494c9705a5e9a1ac1f90"))
         track = session.track(url)
