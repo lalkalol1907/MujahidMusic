@@ -436,7 +436,7 @@ class Bot:
             if not voice and self.allower:  
                 self.queue, self.current_song, self.isp, self.sss = -1, -1, False, 0
                 await asyncio.sleep(1)
-                print("kicked")
+                #print("kicked")
                 await self.clear("./music/queue")
                 self.songs.clear()
                 self.already_played_mp3.clear()
