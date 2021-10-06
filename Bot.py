@@ -94,7 +94,7 @@ class Bot:
     async def p(self, ctx, text): # play
         self.ctx = ctx
         if 'playlist' in text and validators.url(text):
-            await self.playlist(ctx, text)
+            await asyncio.get_event_loop().create_task(self.__playlist(ctx, text))
             return
         try:
             channel = self.ctx.message.author.voice.channel
@@ -145,7 +145,7 @@ class Bot:
         elif stat == "link":
             await ctx.send("There's an error. Your link is incorrect")
             
-    async def playlist(self, ctx, text):
+    async def __playlist(self, ctx, text):
         self.ctx = ctx
         try:
             channel = self.ctx.message.author.voice.channel
@@ -173,25 +173,25 @@ class Bot:
             playlist = Playlist(text)
             playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
             sq = self.queue
+            if not self.kick_checker_bool:
+                asyncio.get_event_loop().create_task(self.kick_checker())
+                self.kick_checker_bool = True
+                self.allower = True   
+            if not self.cleaner_bool:
+                asyncio.get_event_loop().create_task(self.cleaner())
+                self.cleaner_bool = True
+            if not self.idle_checker_bool:
+                asyncio.get_event_loop().create_task(self.idle_checker())
+                self.idle_checker_bool = True
             for url in playlist.video_urls:
                 if validators.url(url):
                     dw = Downloader(self.queue, self.ctx, self.bot_number)
                     self.songs, stat = await dw.analyze(url, self.songs)
                     self.queue = dw.queue
                     if stat == "ok":
-                        if not self.kick_checker_bool:
-                            asyncio.get_event_loop().create_task(self.kick_checker())
-                            self.kick_checker_bool = True
-                            self.allower = True    
                         if not self.isp:   
                             self.isp = True
                             asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-                        if not self.cleaner_bool:
-                            asyncio.get_event_loop().create_task(self.cleaner())
-                            self.cleaner_bool = True
-                        if not self.idle_checker_bool:
-                            asyncio.get_event_loop().create_task(self.idle_checker())
-                            self.idle_checker_bool = True
             await self.ctx.send(f"added to queue {self.queue - sq} songs")
             
     
@@ -221,25 +221,25 @@ class Bot:
                     await self.ctx.send("Can't connect")
         await self.ctx.send(f"Adding to queue your pack...")
         sq = self.queue
+        if not self.kick_checker_bool:
+                asyncio.get_event_loop().create_task(self.kick_checker())
+                self.kick_checker_bool = True
+                self.allower = True   
+        if not self.cleaner_bool:
+            asyncio.get_event_loop().create_task(self.cleaner())
+            self.cleaner_bool = True
+        if not self.idle_checker_bool:
+            asyncio.get_event_loop().create_task(self.idle_checker())
+            self.idle_checker_bool = True
         for url in urls:
             if validators.url(url):
                 dw = Downloader(self.queue, self.ctx, self.bot_number)
                 self.songs, stat = await dw.analyze(url, self.songs)
                 self.queue = dw.queue
                 if stat == "ok":
-                    if not self.kick_checker_bool:
-                        asyncio.get_event_loop().create_task(self.kick_checker())
-                        self.kick_checker_bool = True
-                        self.allower = True    
                     if not self.isp:   
                         self.isp = True
                         asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-                    if not self.cleaner_bool:
-                        asyncio.get_event_loop().create_task(self.cleaner())
-                        self.cleaner_bool = True
-                    if not self.idle_checker_bool:
-                        asyncio.get_event_loop().create_task(self.idle_checker())
-                        self.idle_checker_bool = True
             else:
                 await self.ctx.send("This function can play only urls")
         await self.ctx.send(f"added {self.queue - sq} songs")
