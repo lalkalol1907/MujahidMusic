@@ -7,6 +7,7 @@ from downloader import *
 from embeds import Embeds
 import math
 import datetime
+import validators
 
 bot = commands.Bot(command_prefix='$')   
 
@@ -26,13 +27,14 @@ class Bot:
         self.sss = 0
         self.already_played_mp3 = []
         self.songs = []
+        self.idle_checker_bool = False
         
         self.bot_number = num
         self.server = ctx.message.guild  
     
     def __log(self, arg = ""):
         try:
-            arg += f"\nqueue: {self.queue}\nisp: {self.isp}\ncursong: {self.current_song}\nsss: {self.sss}\nsongs: {self.songs[self.queue].title}\nbools: self.stop_thread: {self.stop_thread} self.stop_voice: {self.stop_voice} "
+            arg += f"\nqueue: {self.queue}\nisp: {self.isp}\ncursong: {self.current_song}\nsss: {self.sss}\nsongs: {self.songs[self.queue].name}\nbools: self.stop_thread: {self.stop_thread} self.stop_voice: {self.stop_voice} "
             print(f"{datetime.datetime.now()}\n{self.bot_number}-Bot: {arg}\n\n")
         except:
             arg += f"\nqueue: {self.queue}\nisp: {self.isp}\ncursong: {self.current_song}\nsss: {self.sss}\nbools: self.stop_thread: {self.stop_thread} self.stop_voice: {self.stop_voice} "
@@ -91,6 +93,8 @@ class Bot:
         
     async def p(self, ctx, text): # play
         self.ctx = ctx
+        if 'playlist' in text:
+            self.ctx.send("Use `$playlist <link> <track range For Example: 1-5 or 2-7(default: first five tracks)>`  command to play playlists")
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
@@ -119,10 +123,7 @@ class Bot:
             self.queue = dw.queue        
             if self.isp:
                 song = self.songs[self.queue]
-                if "playlist" in text:
-                    pass
-                else:
-                    await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.queue, self.current_song))
+                await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.queue, self.current_song))
                 self.__log(f"song {song.name} added to queue, {song.url}")
                 pass
             if not self.kick_checker_bool:
@@ -135,11 +136,66 @@ class Bot:
             if not self.cleaner_bool:
                 asyncio.get_event_loop().create_task(self.cleaner())
                 self.cleaner_bool = True
+            if not self.idle_checker_bool:
+                asyncio.get_event_loop().create_task(self.idle_checker())
+                self.idle_checker_bool = True
         elif stat == "empty":
             await ctx.send("No results for your querry((")
         elif stat == "link":
             await ctx.send("There's an error. Your link is incorrect")
             
+    async def playlist(self, text):
+        pass
+    
+    async def pack(self, ctx, text):
+        self.ctx = ctx
+        urls = text.split()
+        try:
+            channel = self.ctx.message.author.voice.channel
+        except AttributeError:
+            await self.ctx.send("You are not connected to any channel, connecting to default channel")
+            channel = "Основной"
+        self.__log(f"Bot: p: channel = {channel}")
+        voice = get(bot.voice_clients, guild=self.ctx.guild)
+        if voice and voice.is_connected():
+            try:
+                await voice.move_to(channel)
+            except:
+                await self.ctx.send("Can't connect")
+        else:
+            try:
+                voice = await channel.connect()
+                await self.ctx.send(f"Connected to `#{channel}`")
+            except:
+                try:
+                    await voice.move_to(channel)
+                except:
+                    await self.ctx.send("Can't connect")
+        await self.ctx.send(f"Adding to queue your pack...")
+        sq = self.queue
+        for url in urls:
+            if validators.url(url):
+                dw = Downloader(self.queue, self.ctx, self.bot_number)
+                self.songs, stat = await dw.analyze(url, self.songs)
+                self.queue = dw.queue
+                if stat == "ok":
+                    if not self.kick_checker_bool:
+                        asyncio.get_event_loop().create_task(self.kick_checker())
+                        self.kick_checker_bool = True
+                        self.allower = True    
+                    if not self.isp:   
+                        self.isp = True
+                        asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+                    if not self.cleaner_bool:
+                        asyncio.get_event_loop().create_task(self.cleaner())
+                        self.cleaner_bool = True
+                    if not self.idle_checker_bool:
+                        asyncio.get_event_loop().create_task(self.idle_checker())
+                        self.idle_checker_bool = True
+            else:
+                await self.ctx.send("This function can play only urls")
+        await self.ctx.send(f"added {self.queue - sq} songs")
+                    
     async def vk(self, ctxx, text):
         self.ctx = ctxx
         await self.ctx.send("In development =)")

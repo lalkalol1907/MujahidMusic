@@ -2,6 +2,8 @@ from discord.ext import commands
 from discord.utils import get   
 import asyncio
 from Bot import Bot, bot
+import threading
+import time
 
 class Aliases:
     def __init__(self):
@@ -135,5 +137,22 @@ async def channel(ctx, *, text):
 async def v(ctx, *, value):
     pass 
 
+@bot.command(pass_context=True)
+async def pack(ctx, *, text):
+    already_is, bot_index = await check_bot(ctx)
+    if already_is:
+        await bots[bot_index].pack(ctx, text)
+    else:
+        bots.append(Bot(len(bots), ctx))
+        await bots[len(bots)-1].pack(ctx, text)
+
+
+#while True:
+
+th =threading.Thread(bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))
+th.start()
 while True:
-    bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+    if not th.is_alive():
+        bots.clear()
+        th.start()
+    time.sleep(10)
