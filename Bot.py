@@ -188,9 +188,11 @@ class Bot:
                     dw = Downloader(self.queue, self.ctx, self.bot_number)
                     self.songs, stat = await dw.analyze(url, self.songs)
                     self.queue = dw.queue
+                    print(self.queue)
                     if stat == "ok":
                         if not self.isp:   
                             self.isp = True
+                            voice = get(bot.voice_clients, guild=self.ctx.guild)
                             asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
             await self.ctx.send(f"added to queue {self.queue - sq} songs")
             
