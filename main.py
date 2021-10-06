@@ -149,10 +149,4 @@ async def pack(ctx, *, text):
 
 #while True:
 
-th =threading.Thread(bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc'))
-th.start()
-while True:
-    if not th.is_alive():
-        bots.clear()
-        th.start()
-    time.sleep(10)
+bot.run()
