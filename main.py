@@ -149,4 +149,4 @@ async def pack(ctx, *, text):
 
 #while True:
 
-bot.run()
+bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
