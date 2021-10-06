@@ -147,6 +147,4 @@ async def pack(ctx, *, text):
         await bots[len(bots)-1].pack(ctx, text)
 
 
-#while True:
-
 bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
