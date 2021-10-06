@@ -388,7 +388,7 @@ class Bot:
                     self.already_played_mp3.append(ss)
                 else:
                     pass
-                print(ss)
+                self.__log("ss = \n", ss)
                 await song.requestctx.send(embed=Embeds().playing(song.name, song.url, int(dur), song.requestctx))
                 self.ctime = 0
                 for i in range(int(dur)):
