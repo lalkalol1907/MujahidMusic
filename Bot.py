@@ -350,7 +350,6 @@ class Bot:
         else:
             voice = await channel.connect()
             await self.ctx.send(f"Connected to `#{channel}`")
-        
         voice.play(discord.FFmpegOpusAudio("https://cs1-82v4.vkuseraudio.net/p24/2d8c304bd0442e.mp3?extra=cfihgRks4dKdRugxjILr-nIzgJowmNzJGLcTRVpAcLVluOiQGm7y8qvaG7OVyFiSM1P8TDfzOgmzsztIeHjvtqMT5APOHu_SWQOKYUpy6bm5FCqGjgK7gVFTsdrcF1BHGMjTyVe_MhVpTdFe336phVNUvw&long_chunk=1"))
             
     async def leave(self, ctxx):
@@ -536,7 +535,7 @@ class Bot:
             return
         self.isp = False
         return
-        
+    
     async def kick_checker(self):
         while True:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
