@@ -536,7 +536,6 @@ class Bot:
         self.isp = False
         return
     
-    
     async def kick_checker(self):
         while True:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
