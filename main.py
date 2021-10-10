@@ -1,19 +1,15 @@
-from discord.ext import commands
-from discord.utils import get   
-import asyncio
 from Bot import Bot, bot
-import threading
-import time
 
 class Aliases:
     def __init__(self):
         self.p = ['play', 'P', 'Play', 'PLAY']
         self.np = ['NP', 'Np']
         self.q = ['q', 'Q']
-        self.fs = ['skip', 'Fs', 'FS', 'SKIP', 'Skip']
+        self.fs = ['skip', 'Fs', 'FS',]
+        self.skip = ['Skip', "SKIP"]
+        self.loop = ['loop', 'Loop']
 
 bots = []
-status = False
 
 async def check_bot(ctx):
     if bots != []:
@@ -87,9 +83,6 @@ async def np(ctx):
 
 @bot.command(pass_context=False, aliases = Aliases().q)
 async def queue(ctx):
-    """
-    queue
-    """
     already_is, bot_index = await check_bot(ctx)
     if already_is:
         await bots[bot_index].queue1(ctx)
@@ -105,15 +98,6 @@ async def vk(ctx, *, text):
     else:
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].vk(ctx, text)
-            
-@bot.command(pass_context = False)
-async def loop(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].loop(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].loop(ctx, text)
             
 @bot.command(pass_context=False)
 async def connect(ctx):
@@ -145,6 +129,19 @@ async def pack(ctx, *, text):
     else:
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].pack(ctx, text)
+        
+"""@bot.command(pass_context=True)
+async def skip(ctx, *, text):
+    pass"""
+
+@bot.command(pass_context=True, aliases=Aliases().loop)
+async def pl(ctx, *, text):
+    already_is, bot_index = await check_bot(ctx)
+    if already_is:
+        await bots[bot_index].play_loop(ctx, text)
+    else:
+        bots.append(Bot(len(bots), ctx))
+        await bots[len(bots)-1].play_loop(ctx, text)
 
 
 bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')

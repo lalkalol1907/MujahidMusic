@@ -1,4 +1,5 @@
 import pytube
+import pytube.exceptions
 import validators
 from youtube_search import YoutubeSearch
 import spotipy
@@ -7,13 +8,9 @@ import vk_api
 from vk_api.audio import VkAudio
 import pafy
 import http
-import re
-from pytube import Playlist
-import threading
-import asyncio
 
 class Song:
-    def __init__(self, number, url, name, long, is_mp3, source, ctx):
+    def __init__(self, number, url, name, long, is_mp3, source, ctx, loop):
         self.number = number
         self.url = url
         self.name = name
@@ -21,6 +18,7 @@ class Song:
         self.is_mp3 = is_mp3
         self.source = source
         self.requestctx = ctx
+        self.loop = loop
 
 class Downloader():
     def __init__(self, queue, ctx, num):
@@ -28,29 +26,58 @@ class Downloader():
         self.ctx = ctx
         self.bot = num
     
-    async def analyze(self, text, songs):
+    async def analyze(self, text, songs, loop = 1):
         if validators.url(text):
             if "spotify" in text: 
-                return await self.__download_from_spotify_url(text, songs)
+                return await self.__download_from_spotify_url(text, songs, loop)
             elif "youtube" in text or "youtu.be" in text: 
-                return await self.__download_from_yt_url(text, "youtube", songs)
+                return await self.__download_from_yt_url(text, "youtube", songs, loop)
         else:
             try: 
-                return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "youtube", songs)
+                return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "youtube", songs, loop, text)
             except IndexError: 
-                return [], "empty"
+                return songs, "empty"
         
-    async def __download_from_yt_url(self, url, source, songs):
-        youtube = pytube.YouTube(url)
+    async def __download_from_yt_url(self, url, source, songs, loop = 1, name = ""):
+        try:
+            youtube = pytube.YouTube(url)
+        except: 
+            return songs, "link"
         try: 
             f = youtube.streams.filter(only_audio=True).first()
         except http.client.IncompleteRead:
             try:  
                 f = youtube.streams.filter(only_audio=True).first()
+            except pytube.exceptions.AgeRestrictedError:
+                search = YoutubeSearch(name).to_dict()
+                success = False
+                for i in search():
+                    try:
+                        youtube = pytube.YouTube(i['url_suffix'])
+                        f = youtube.streams.filter(only_audio=True).first()
+                        success = True
+                        break
+                    except:  pass
+                if not success: 
+                    return songs, "age"
+                await self.ctx.send("This video is Age-Restricted. Trying to download similar one")
             except: 
-                return [], "link"
+                return songs, "link"
+        except pytube.exceptions.AgeRestrictedError:
+            search = YoutubeSearch(name).to_dict()
+            success = False
+            for i in search():
+                try:
+                    youtube = pytube.YouTube(i['url_suffix'])
+                    f = youtube.streams.filter(only_audio=True).first()
+                    success = True
+                    break
+                except:  pass
+            if not success:
+                return songs, "age"
+            await self.ctx.send("This video is Age-Restricted. Trying to download similar one")
         except: 
-            return [], "link"
+            return songs, "link"
         def a():
             counter = 0
             while counter < 10:
@@ -62,17 +89,17 @@ class Downloader():
             return False
         stat = a()
         if not stat:
-            return [], "link"
+            return songs, "link"
         self.queue += 1
         try:
             h, m, s = map(int, pafy.new(url).duration.split(":"))
             duration = h*3600 + m*60 + s
         except:
-            return [], "link"
-        songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx))
+            return songs, "link"
+        songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
         return songs, "ok"
     
-    async def __download_from_spotify_url(self, url, songs):
+    async def __download_from_spotify_url(self, url, songs, loop = 1):
         session = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(client_id="6a3124a2b3df4275a177a80104f534d0", client_secret="86870ba523f2494c9705a5e9a1ac1f90"))
         track = session.track(url)
         artists = track['artists']
@@ -84,7 +111,7 @@ class Downloader():
                 text+=f"{artist['name']}, "
             text = text[:len(text)-1] + f" - {track['name']}"
         print(text)
-        return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "spotify", songs)
+        return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "spotify", songs, loop)
         
     async def vk(self, text):
         login, password = 'login', 'password'
