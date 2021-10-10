@@ -385,7 +385,7 @@ class Bot:
         self.songs.clear()
         self.already_played_mp3.clear()
         self.current_song_loop = 0
-    
+        
     async def pause(self, ctxx):
         self.__log("pause")
         self.ctx = ctxx
@@ -536,6 +536,7 @@ class Bot:
         self.isp = False
         return
     
+    
     async def kick_checker(self):
         while True:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
@@ -564,3 +565,4 @@ class Bot:
                     await self.ctx.send(f"Disconnected due to inactivity")
                 counter = 0
             await asyncio.sleep(3)
+            
