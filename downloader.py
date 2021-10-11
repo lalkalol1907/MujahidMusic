@@ -50,7 +50,7 @@ class Downloader():
                 f = youtube.streams.filter(only_audio=True).first()
             except: 
                 return songs, "link"
-        except pytube.exceptions.AgeRestrictedError:
+        except: 
             if name == "":
                 return songs, "age"
             search = YoutubeSearch(name, max_results=4).to_dict()
@@ -72,8 +72,6 @@ class Downloader():
                     pass
             if not success:
                 return songs, "age"
-        except: 
-            return songs, "link"
         def a():
             counter = 0
             while counter < 10:
