@@ -547,7 +547,7 @@ class Bot:
                         self.ctime += 1
                         #print(f"cur = {self.ctime}")
                         await asyncio.sleep(1)
-                    await asyncio.sleep(0.2)
+                    await asyncio.sleep(1)
                 if self.stop_voice_2:
                     self.stop_voice_2 = False
                     self.isp = False
