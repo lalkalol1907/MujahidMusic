@@ -37,6 +37,8 @@ class Downloader():
                 return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "youtube", songs, loop, text)
             except IndexError: 
                 return songs, "empty"
+            except:
+                return songs, "age"
         
     async def __download_from_yt_url(self, url, source, songs, loop = 1, name = ""):
         try:
@@ -53,11 +55,7 @@ class Downloader():
         except pytube.exceptions.AgeRestrictedError:
             return songs, "age"
         except: 
-            try:
-                pafy.new(url).title
-                return songs, "link"
-            except:
-                return songs, "age" 
+            return songs, "link"
         def a():
             counter = 0
             while counter < 10:
