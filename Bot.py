@@ -177,8 +177,8 @@ class Bot:
             if c == 1:
                 temp = 1
             else:
-                temp = math.ceil(math.log10(c))
-            text = input_str[temp+1:]
+                temp = math.floor(math.log10(c))
+            text = input_str[temp+2:]
         except Exception as ex:
             print(ex)
             await ctx.send('Type "$pl <loop counter>; <name or url>"')
@@ -547,6 +547,7 @@ class Bot:
                         self.ctime += 1
                         #print(f"cur = {self.ctime}")
                         await asyncio.sleep(1)
+                    await asyncio.sleep(0.2)
                 if self.stop_voice_2:
                     self.stop_voice_2 = False
                     self.isp = False
