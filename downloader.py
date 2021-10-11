@@ -41,6 +41,15 @@ class Downloader():
     async def __download_from_yt_url(self, url, source, songs, loop = 1, name = ""):
         try:
             youtube = pytube.YouTube(url)
+        except: 
+            return songs, "link"
+        try: 
+            f = youtube.streams.filter(only_audio=True).first()
+        except http.client.IncompleteRead:
+            try:  
+                f = youtube.streams.filter(only_audio=True).first()
+            except: 
+                return songs, "link"
         except pytube.exceptions.AgeRestrictedError:
             if name == "":
                 return songs, "age"
@@ -52,19 +61,17 @@ class Downloader():
                     f = youtube.streams.filter(only_audio=True).first()
                     success = True
                     break
+                except http.client.IncompleteRead:
+                    try:
+                        f = youtube.streams.filter(only_audio=True).first()
+                        success = True
+                        break
+                    except: 
+                        pass
                 except:  
                     pass
             if not success:
                 return songs, "age"
-        except: 
-            return songs, "link"
-        try: 
-            f = youtube.streams.filter(only_audio=True).first()
-        except http.client.IncompleteRead:
-            try:  
-                f = youtube.streams.filter(only_audio=True).first()
-            except: 
-                return songs, "link"
         except: 
             return songs, "link"
         def a():
