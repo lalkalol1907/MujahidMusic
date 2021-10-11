@@ -42,7 +42,6 @@ class Downloader():
         try:
             youtube = pytube.YouTube(url)
         except: 
-            print("first-try")
             return songs, "link"
         try: 
             f = youtube.streams.filter(only_audio=True).first()
@@ -51,28 +50,14 @@ class Downloader():
                 f = youtube.streams.filter(only_audio=True).first()
             except: 
                 return songs, "link"
+        except pytube.exceptions.AgeRestrictedError:
+            return songs, "age"
         except: 
-            if name == "":
-                return songs, "age"
-            search = YoutubeSearch(name, max_results=4).to_dict()
-            success = False
-            for i in search:
-                try:
-                    youtube = pytube.YouTube(i['url_suffix'])
-                    f = youtube.streams.filter(only_audio=True).first()
-                    success = True
-                    break
-                except http.client.IncompleteRead:
-                    try:
-                        f = youtube.streams.filter(only_audio=True).first()
-                        success = True
-                        break
-                    except: 
-                        pass
-                except:  
-                    pass
-            if not success:
-                return songs, "age"
+            try:
+                pafy.new(url).title
+                return songs, "link"
+            except:
+                return songs, "age" 
         def a():
             counter = 0
             while counter < 10:
