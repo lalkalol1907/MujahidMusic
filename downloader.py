@@ -42,6 +42,7 @@ class Downloader():
         try:
             youtube = pytube.YouTube(url)
         except: 
+            print("first-try")
             return songs, "link"
         try: 
             f = youtube.streams.filter(only_audio=True).first()
