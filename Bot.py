@@ -21,6 +21,8 @@ class Bot:
         self.ctx = ctx
         self.stop_thread = False
         self.stop_voice = False
+        self.skip_param = False
+        self.skip_size = 1
         self.ctime = 0
         self.kick_checker_bool = False
         self.allower = False    
@@ -97,6 +99,22 @@ class Bot:
             await self.ctx.send("Incorrect channel")
         
     async def p(self, ctx, text): # play
+        def __packcheck():
+            arr = text.split()
+            url_flag = True
+            flag2 = ';' in text 
+            try:
+                c = int(arr[0])
+            except:
+                return False
+            for i in range(1, len(arr)):
+                url_flag = validators.url(arr[i])
+                if not url_flag:
+                    break
+            return flag2 or url_flag
+        if __packcheck():
+            await self.pack(ctx, text)
+            return
         self.ctx = ctx
         if 'playlist' in text and validators.url(text):
             asyncio.get_event_loop().create_task(self.__playlist(ctx, text))
@@ -152,14 +170,18 @@ class Bot:
         elif stat == "age":
             await ctx.send("This video is age restricted, try to use link/another link")
             
-    async def play_loop(self, ctx, input):
+    async def play_loop(self, ctx, input_str):
         self.ctx = ctx
         try:
-            c, strc = int(input.split(' ')[0]), input.split(' ')[0]
-            text = input.replace(strc, "")[1:]
+            c = int(input_str.split(' ')[0])
+            if c == 1:
+                temp = 1
+            else:
+                temp = math.ceil(math.log10(c))
+            text = input_str[temp+1:]
         except Exception as ex:
             print(ex)
-            await ctx.send('Type "$pl <name or url>; <loop_counter>"')
+            await ctx.send('Type "$pl <loop counter>; <name or url>"')
             return
         if 'playlist' in text and validators.url(text):
             await ctx.send("Can't playing playlists in a loop")
@@ -482,6 +504,7 @@ class Bot:
                     await self.channel(self.ctx, self.last_channel)
                 EmbedSent = False
                 for j in range(int(song.loop)):
+                    print("songloop", song.loop)
                     if song.is_mp3:
                         dur = song.long
                         data = discord.FFmpegPCMAudio(source=f"./music/queue/{self.bot_number}-song{ss}.mp3")
@@ -512,6 +535,13 @@ class Bot:
                                 self.stop_voice = False
                                 self.stop_voice_2 = True
                                 break
+                            if self.skip_param is True:
+                                voice.stop()
+                                self.skip_param = False
+                                ss+=self.skip_size
+                                await self.MusicPlayer(voice, ss)
+                                self.isp = False
+                                return
                         finally:
                             pass
                         self.ctime += 1
@@ -536,6 +566,17 @@ class Bot:
         self.isp = False
         return
     
+    async def skip_parametrs(self, ctx, param):
+        self.ctx = ctx
+        if self.isp:
+            try:
+                self.skip_param, self.skip_size = True, int(param)
+                self.fscount += int(param)
+            except ValueError:
+                await ctx.send("Incorrect querry, please type an integer")
+        else:
+            await self.ctx.send("There's nothing to skip")
+            
     async def kick_checker(self):
         while True:
             voice = get(bot.voice_clients, guild=self.ctx.guild)

@@ -4,7 +4,7 @@ from youtube_search import YoutubeSearch
 
 class Embeds:
     
-    def NPEmbed(self, title, url, time1, time2, ctx, loop, curloop): 
+    def NPEmbed(self, title, url, time1, time2, ctx, loop, curloop) -> discord.Embed: 
         def __time_format(time1, time2):
             time1, time2 = int(math.floor(time1)), int(math.floor(time2))
             d = [str(time1//3600), str(time2//3600), str(time1%3600//60), str(time2%3600//60), str(time1%60), str(time2%60)]
@@ -21,7 +21,7 @@ class Embeds:
             embed.add_field(name="Loop:", value=f"`{curloop}/{loop}`")
         return embed
     
-    def added_to_queue(self, title, url, time, ctx, queue, current_song, loop=1):
+    def added_to_queue(self, title, url, time, ctx, queue, current_song, loop=1) -> discord.Embed:
         def __time_format(time):
             d = [str(time//3600), str(time%3600//60), str(time%60)]
             for i in range(len(d)):
@@ -37,7 +37,7 @@ class Embeds:
             embed.add_field(name="Loop:", value=f"`{int(loop)}`")
         return embed
     
-    def added_to_queue_pack(self, ctx, songsarray, url=""):
+    def added_to_queue_pack(self, ctx, songsarray, url="") -> discord.Embed:
         title = "User playlist"
         if url == "":
             embed=discord.Embed(title=title, color=0xA2D5C6)
@@ -57,8 +57,9 @@ class Embeds:
             return f"{d[0]}:{d[1]}:{d[2]}"
         embed.add_field(name=f"Duration:", value=f"`{__time_format(int(dur))}`", inline=True)
         embed.add_field(name=f"Number:", value=f"`{len(songsarray)}`", inline=True)
+        return embed
     
-    def playing(self, title, url, time, ctx, loop=None):
+    def playing(self, title, url, time, ctx, loop=None) -> discord.Embed:
         def __time_format(time):
             d = [str(time//3600), str(time%3600//60), str(time%60)]
             for i in range(len(d)):
@@ -73,7 +74,7 @@ class Embeds:
             embed.add_field(name="Loop: ", value=f"`{int(loop)}`", inline=True)
         return embed
     
-    def __formated_line(self, time1, time2):
+    def __formated_line(self, time1, time2) -> str:
         def_str = "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
         pos = time1*(len(def_str)/time2)
         def_str = def_str[:int(pos)] + "🔘" + def_str[int(pos)+1:]
@@ -82,7 +83,7 @@ class Embeds:
     def __get_tb(self, title):
         return YoutubeSearch(title, max_results=1).to_dict()[0]['thumbnails'][0]
     
-    def queue(self, songs, current_song, ctx, ctime, curloop):
+    def queue(self, songs, current_song, ctx, ctime, curloop) -> discord.Embed:
         def __time_format1(time):
             d = [str(time//3600), str(time%3600//60), str(time%60)]
             for i in range(len(d)):

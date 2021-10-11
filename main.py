@@ -124,6 +124,7 @@ async def v(ctx, *, value):
 @bot.command(pass_context=True)
 async def pack(ctx, *, text):
     already_is, bot_index = await check_bot(ctx)
+    await ctx.send("`You can play packs with usual $p function.`")
     if already_is:
         await bots[bot_index].pack(ctx, text)
     else:

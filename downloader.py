@@ -21,7 +21,7 @@ class Song:
         self.loop = loop
 
 class Downloader():
-    def __init__(self, queue, ctx, num):
+    def __init__(self, queue, ctx, num) -> None:
         self.queue = queue
         self.ctx = ctx
         self.bot = num
