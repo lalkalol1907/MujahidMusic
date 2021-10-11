@@ -233,7 +233,7 @@ class Bot:
         elif stat == "empty":
             await ctx.send("No results for your querry((")
         elif stat == "link":
-            await ctx.send("There's an error. Your link is incorrect")
+            await ctx.send("There's an error. Your link is incorrect. May be this video is age restricted")
         elif stat == "age":
             await ctx.send("This video is age restricted, try to use link/another link")
             
