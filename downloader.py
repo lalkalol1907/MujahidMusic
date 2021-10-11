@@ -41,6 +41,21 @@ class Downloader():
     async def __download_from_yt_url(self, url, source, songs, loop = 1, name = ""):
         try:
             youtube = pytube.YouTube(url)
+        except pytube.exceptions.AgeRestrictedError:
+            if name == "":
+                return songs, "age"
+            search = YoutubeSearch(name, max_results=4).to_dict()
+            success = False
+            for i in search:
+                try:
+                    youtube = pytube.YouTube(i['url_suffix'])
+                    f = youtube.streams.filter(only_audio=True).first()
+                    success = True
+                    break
+                except:  
+                    pass
+            if not success:
+                return songs, "age"
         except: 
             return songs, "link"
         try: 
@@ -48,34 +63,8 @@ class Downloader():
         except http.client.IncompleteRead:
             try:  
                 f = youtube.streams.filter(only_audio=True).first()
-            except pytube.exceptions.AgeRestrictedError:
-                search = YoutubeSearch(name).to_dict()
-                success = False
-                for i in search():
-                    try:
-                        youtube = pytube.YouTube(i['url_suffix'])
-                        f = youtube.streams.filter(only_audio=True).first()
-                        success = True
-                        break
-                    except:  pass
-                if not success: 
-                    return songs, "age"
-                await self.ctx.send("This video is Age-Restricted. Trying to download similar one")
             except: 
                 return songs, "link"
-        except pytube.exceptions.AgeRestrictedError:
-            search = YoutubeSearch(name).to_dict()
-            success = False
-            for i in search():
-                try:
-                    youtube = pytube.YouTube(i['url_suffix'])
-                    f = youtube.streams.filter(only_audio=True).first()
-                    success = True
-                    break
-                except:  pass
-            if not success:
-                return songs, "age"
-            await self.ctx.send("This video is Age-Restricted. Trying to download similar one")
         except: 
             return songs, "link"
         def a():
