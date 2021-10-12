@@ -252,9 +252,9 @@ class Bot:
                 text = text[1:]
             return c, text
         pos, text = splitter()
-        if pos >= len(self.songs):
-            await self.ctx.send("Your's track position is biigger than songs list. Adding to the end of the queue.")
-            self.p(ctx, text)
+        if pos > len(self.songs):
+            await self.ctx.send("Your's track position is bigger than songs list. Adding to the end of the queue.")
+            await self.p(ctx, text)
             return
         try:
             channel = self.ctx.message.author.voice.channel
