@@ -277,7 +277,10 @@ class Bot:
                     await voice.move_to(channel)
                 except:
                     await self.ctx.send("Can't connect")
-        await self.ctx.send(f"Searching and downloading: `{text}`...")
+        if send_key:
+            await self.ctx.send(f"Searching and downloading: `{text}`...")
+        else:
+            await self.ctx.send(f"Searching and playing now, please wait: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number, self.sss)
         self.songs, stat = await dw.analyze(text, self.songs, pos=pos)
         if stat == "ok":
