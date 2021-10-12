@@ -179,6 +179,8 @@ class Bot:
             else:
                 temp = math.floor(math.log10(c))
             text = input_str[temp+2:]
+            if text[0] == ' ':
+                text = text[1:]
         except Exception as ex:
             print(ex)
             await ctx.send('Type "$pl <loop counter>; <name or url>"')
@@ -236,6 +238,79 @@ class Bot:
             await ctx.send("There's an error. Your link is incorrect. May be this video is age restricted")
         elif stat == "age":
             await ctx.send("This video is age restricted, try to use link/another link")
+            
+    async def play_in_pos(self, ctx, input_str, send_key = True):
+        self.ctx = ctx
+        def splitter():
+            c = int(input_str.split(' ')[0])
+            if c == 1:
+                temp = 1
+            else:
+                temp = math.floor(math.log10(c))
+            text = input_str[temp+1:]
+            while text[0] == ' ':
+                text = text[1:]
+            return c, text
+        pos, text = splitter()
+        if pos >= len(self.songs):
+            await self.ctx.send("Your's track position is biigger than songs list. Adding to the end of the queue.")
+            self.p(ctx, text)
+            return
+        try:
+            channel = self.ctx.message.author.voice.channel
+        except AttributeError:
+            await self.ctx.send("You are not connected to any channel, connecting to default channel")
+            channel = "Основной"
+        self.__log(f"Bot: p: channel = {channel}")
+        voice = get(bot.voice_clients, guild=self.ctx.guild)
+        if voice and voice.is_connected():
+            try:
+                await voice.move_to(channel)
+            except:
+                await self.ctx.send("Can't connect")
+        else:
+            try:
+                voice = await channel.connect()
+                await self.ctx.send(f"Connected to `#{channel}`")
+            except:
+                try:
+                    await voice.move_to(channel)
+                except:
+                    await self.ctx.send("Can't connect")
+        await self.ctx.send(f"Searching and downloading: `{text}`...")
+        dw = Downloader(self.queue, self.ctx, self.bot_number, self.sss)
+        self.songs, stat = await dw.analyze(text, self.songs, pos=pos)
+        if stat == "ok":
+            self.queue = dw.queue        
+            if self.isp:
+                song = self.songs[self.sss+pos]
+                if send_key:
+                    await self.ctx.send(embed=Embeds().added_to_queue(song.name, song.url, int(song.long), self.ctx, self.sss+pos, self.current_song))
+                self.__log(f"song {song.name} added to queue, {song.url}")
+                pass
+            if not self.kick_checker_bool:
+                asyncio.get_event_loop().create_task(self.kick_checker())
+                self.kick_checker_bool = True
+                self.allower = True    
+            if not self.isp:   
+                self.isp = True
+                asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+            if not self.cleaner_bool:
+                asyncio.get_event_loop().create_task(self.cleaner())
+                self.cleaner_bool = True
+            if not self.idle_checker_bool:
+                asyncio.get_event_loop().create_task(self.idle_checker())
+                self.idle_checker_bool = True
+        elif stat == "empty":
+            await ctx.send("No results for your querry((")
+        elif stat == "link":
+            await ctx.send("There's an error. Your link is incorrect. May be this video is age restricted")
+        elif stat == "age":
+            await ctx.send("This video is age restricted, try to use link/another link")
+    
+    async def play_now(self, ctx, text):
+        await self.play_in_pos(ctx, f"1 {text}", False)
+        await self.fs(ctx)
             
     async def __playlist(self, ctx, text):
         self.ctx = ctx
@@ -491,7 +566,7 @@ class Bot:
         for ss in range(s, len(self.songs)): 
             self.sss = ss
             try:
-                self.current_song += 1
+                self.current_song = ss
                 if self.current_song > self.queue:
                     self.current_song-=1; break
                 voice.stop()
@@ -507,7 +582,7 @@ class Bot:
                     print("songloop", song.loop)
                     if song.is_mp3:
                         dur = song.long
-                        data = discord.FFmpegPCMAudio(source=f"./music/queue/{self.bot_number}-song{ss}.mp3")
+                        data = discord.FFmpegPCMAudio(source=f"./music/queue/{self.bot_number}-song{song.number}.mp3")
                         voice.play(data)
                         self.current_song_loop += 1
                         self.__log(f"{self.bot_number} playing {song.name}")
@@ -567,7 +642,10 @@ class Bot:
         self.isp = False
         return
     
-    async def skip_parametrs(self, ctx, param):
+    async def delete(self, ctx, text):
+        pass
+    
+    async def skip_parameters(self, ctx, param):
         self.ctx = ctx
         if self.isp:
             try:

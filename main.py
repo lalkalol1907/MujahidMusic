@@ -5,8 +5,7 @@ class Aliases:
         self.p = ['play', 'P', 'Play', 'PLAY']
         self.np = ['NP', 'Np']
         self.q = ['q', 'Q']
-        self.fs = ['skip', 'Fs', 'FS',]
-        self.skip = ['Skip', "SKIP"]
+        self.fs = ['skip', 'Fs', 'FS', 'Skip', "SKIP"]
         self.loop = ['loop', 'Loop']
 
 bots = []
@@ -71,6 +70,24 @@ async def resume(ctx):
     else:
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].resume(ctx)
+        
+@bot.command(pass_context=True)        
+async def pp(ctx, *, text):
+    already_is, bot_index = await check_bot(ctx)
+    if already_is:
+        await bots[bot_index].play_in_pos(ctx, text)
+    else:
+        bots.append(Bot(len(bots), ctx))
+        await bots[len(bots)-1].play_in_pos(ctx, text)
+        
+@bot.command(pass_context=True)        
+async def pn(ctx, *, text):
+    already_is, bot_index = await check_bot(ctx)
+    if already_is:
+        await bots[bot_index].play_now(ctx, text)
+    else:
+        bots.append(Bot(len(bots), ctx))
+        await bots[len(bots)-1].play_now(ctx, text)
 
 @bot.command(pass_context=False, aliases=Aliases().np)
 async def np(ctx):
@@ -131,9 +148,14 @@ async def pack(ctx, *, text):
         bots.append(Bot(len(bots), ctx))
         await bots[len(bots)-1].pack(ctx, text)
         
-"""@bot.command(pass_context=True)
-async def skip(ctx, *, text):
-    pass"""
+@bot.command(pass_context=True)
+async def ss(ctx, *, text):
+    already_is, bot_index = await check_bot(ctx)
+    if already_is:
+        await bots[bot_index].skip_parameters(ctx, text)
+    else:
+        bots.append(Bot(len(bots), ctx))
+        await bots[len(bots)-1].skip_parameters(ctx, text)
 
 @bot.command(pass_context=True, aliases=Aliases().loop)
 async def pl(ctx, *, text):

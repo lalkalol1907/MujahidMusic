@@ -107,5 +107,4 @@ class Embeds:
                     embed.add_field(name=f"`{i-current_song+1}) {songs[i].name}`", value=f"   Duration: `{__time_format1(int(songs[i].long))}`\nLoop: `{int(songs[i].loop)}`", inline=False)
                 else:
                     embed.add_field(name=f"`{i-current_song+1}) {songs[i].name}`", value=f"   Duration: `{__time_format1(int(songs[i].long))}`\n", inline=False)
-                
         return embed
