@@ -308,9 +308,17 @@ class Bot:
         elif stat == "age":
             await ctx.send("This video is age restricted, try to use link/another link")
     
-    async def play_now(self, ctx, text):
-        await self.play_in_pos(ctx, f"1 {text}", False)
+    async def play_now(self, ctx, input_str):
+        self.ctx = ctx
+        try:
+            voice = get(bot.voice_clients, guild=self.ctx.guild)
+            voice.pause()
+        except:
+            await self.p(ctx, input_str)
+            return
+        await self.play_in_pos(ctx, f"1 {input_str}", False)
         await self.fs(ctx)
+        voice.resume()
             
     async def __playlist(self, ctx, text):
         self.ctx = ctx
