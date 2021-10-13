@@ -8,6 +8,7 @@ import vk_api
 from vk_api.audio import VkAudio
 import pafy
 import http
+from config import SpotifyCFG
 
 class Song:
     def __init__(self, number, url, name, long, is_mp3, source, ctx, loop):
@@ -26,6 +27,7 @@ class Downloader():
         self.ctx = ctx
         self.bot = num
         self.current_song = cs
+        self.spotify_cfg = SpotifyCFG()
     
     async def analyze(self, text, songs, loop = 1, pos=0):
         if validators.url(text):
@@ -88,7 +90,7 @@ class Downloader():
         return songs, "ok"
     
     async def __download_from_spotify_url(self, url, songs, pos, loop = 1):
-        session = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(client_id="6a3124a2b3df4275a177a80104f534d0", client_secret="86870ba523f2494c9705a5e9a1ac1f90"))
+        session = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(client_id=self.spotify_cfg.CLIENT_ID, client_secret=self.spotify_cfg.CLIENT_SECRET))
         track = session.track(url)
         artists = track['artists']
         text = ""

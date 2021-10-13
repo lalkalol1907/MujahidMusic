@@ -1,4 +1,5 @@
 from Bot import Bot, bot
+from config import DiscordCFG
 
 class Aliases:
     def __init__(self):
@@ -167,4 +168,4 @@ async def pl(ctx, *, text):
         await bots[len(bots)-1].play_loop(ctx, text)
 
 
-bot.run('ODg3MzEwNDk0MjIwODQwOTkx.YUCSSw.eBXeRPhKIyhdF6_epRN6aTlAbZc')
+bot.run(DiscordCFG().BOT_TOKEN)
