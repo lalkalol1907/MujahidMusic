@@ -11,3 +11,4 @@ pafy
 youtube-dl
 pymediainfo
 PyTelegramBotAPI
+peewee
