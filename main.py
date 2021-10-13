@@ -1,4 +1,4 @@
-from Bot import Bot, bot
+from Discord.Bot import Bot, bot
 from config import DiscordCFG
 
 class Aliases:

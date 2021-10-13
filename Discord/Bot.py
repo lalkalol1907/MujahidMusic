@@ -3,8 +3,8 @@ import os
 from discord.ext import commands
 from discord.utils import get
 import asyncio
-from downloader import *
-from embeds import Embeds
+from Discord.downloader import *
+from Discord.embeds import Embeds
 import math
 import datetime
 import validators

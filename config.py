@@ -28,3 +28,9 @@ class DiscordCFG(JSONProvider):
         global config_path
         super().__init__(config_path)
         self.BOT_TOKEN = self.get("DISCORD", "TOKEN")
+        
+class TGCFG(JSONProvider):
+    def __init__(self):
+        global config_path
+        super().__init__(config_path)
+        self.BOT_TOKEN = self.get("TGBOT", "TOKEN")
