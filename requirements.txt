@@ -10,3 +10,4 @@ PyNaCl
 pafy
 youtube-dl
 pymediainfo
+PyTelegramBotAPI
