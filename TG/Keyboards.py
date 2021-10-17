@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 # TODO: Переписать клавиатуры на aiogram
 
-async def reg_kbd():
+def reg_kbd():
     markup = InlineKeyboardMarkup()
     markup.row_width = 1
     markup.add(InlineKeyboardButton("Регистрация", callback_data="register"))
