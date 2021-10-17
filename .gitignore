@@ -6,3 +6,5 @@ test/
 t2.py
 *.db
 *.json
+venv/
+.idea/

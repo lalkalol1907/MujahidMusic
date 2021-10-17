@@ -1,5 +1,8 @@
 from Discord.Bot import Bot, bot
+from Discord.bots import bots
 from config import DiscordCFG
+from DB.DB import *
+
 
 class Aliases:
     def __init__(self):
@@ -9,163 +12,151 @@ class Aliases:
         self.fs = ['skip', 'Fs', 'FS', 'Skip', "SKIP"]
         self.loop = ['loop', 'Loop']
 
-bots = []
 
 async def check_bot(ctx):
-    if bots != []:
+    if bots:
         for i in range(len(bots)):
             if bots[i].server == ctx.message.guild:
                 return True, i
     return False, -1
 
-@bot.command(pass_context=False, aliases = Aliases().fs)
+
+async def func_start(command, ctx, text=""):
+    already_is, bot_index = await check_bot(ctx)
+    if already_is:
+        num = bot_index
+    else:
+        bots.append(Bot(len(bots), ctx))
+        ServerDB().reg(ctx.guild)
+        num = len(bots) - 1
+    match command:
+        case "fs":
+            await bots[num].fs(ctx)
+        case "p":
+            await bots[num].p(ctx, text)
+        case "leave":
+            await bots[num].leave(ctx)
+        case "stop":
+            await bots[num].stop(ctx)
+        case "pause":
+            await bots[num].pause(ctx)
+        case "resume":
+            await bots[num].resume(ctx)
+        case "pp":
+            await bots[num].play_in_pos(ctx, text)
+        case "pn":
+            await bots[num].play_now(ctx, text)
+        case "np":
+            await bots[num].np(ctx)
+        case "queue":
+            await bots[num].queue1(ctx)
+        case "vk":
+            await bots[num].vk(ctx, text)
+        case "connect":
+            await bots[num].connect(ctx)
+        case "channel":
+            await bots[num].channel(ctx, text)
+        case "v":
+            pass
+        case "pack":
+            await bots[num].pack(ctx, text)
+        case "ss":
+            await bots[num].skip_parameters(ctx, text)
+        case "pl":
+            await bots[num].play_loop(ctx, text)
+        case "key":
+            await ctx.send(ServerDB().get_key(ctx.guild.id))
+
+
+@bot.command(pass_context=False, aliases=Aliases().fs)
 async def fs(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].fs(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].fs(ctx)
+    await func_start("fs", ctx)
 
-@bot.command(pass_context=True, aliases = Aliases().p)
+
+@bot.command(pass_context=True, aliases=Aliases().p)
 async def p(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].p(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].p(ctx, text)
-        
-@bot.command(pass_context=False)    
-async def leave(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].leave(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].leave(ctx)
+    await func_start("p", ctx, text)
 
-@bot.command(pass_context=False)   
+
+@bot.command(pass_context=False)
+async def leave(ctx):
+    await func_start("leave", ctx)
+
+
+@bot.command(pass_context=False)
 async def stop(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].stop(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].stop(ctx)
+    await func_start("stop", ctx)
+
 
 @bot.command(pass_context=False)
 async def pause(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].pause(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].pause(ctx)
+    await func_start("pause", ctx)
+
 
 @bot.command(pass_context=False)
 async def resume(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].resume(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].resume(ctx)
-        
-@bot.command(pass_context=True)        
+    await func_start("resume", ctx)
+
+
+@bot.command(pass_context=True)
 async def pp(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].play_in_pos(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].play_in_pos(ctx, text)
-        
-@bot.command(pass_context=True)        
+    await func_start("pp", ctx, text)
+
+
+@bot.command(pass_context=True)
 async def pn(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].play_now(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].play_now(ctx, text)
+    await func_start("pn", ctx, text)
+
 
 @bot.command(pass_context=False, aliases=Aliases().np)
 async def np(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].np(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].np(ctx)
+    await func_start("np", ctx)
 
-@bot.command(pass_context=False, aliases = Aliases().q)
+
+@bot.command(pass_context=False, aliases=Aliases().q)
 async def queue(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].queue1(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].queue1(ctx)
+    await func_start("queue", ctx)
 
-@bot.command(pass_context = False)
+
+@bot.command(pass_context=False)
 async def vk(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].vk(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].vk(ctx, text)
-            
+    await func_start("vk", ctx, text)
+
+
 @bot.command(pass_context=False)
 async def connect(ctx):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].connect(ctx)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].connect(ctx)
-            
+    await func_start("connect", ctx)
+
+
 @bot.command(pass_context=True)
 async def channel(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].channel(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].channel(ctx, text)
-            
+    await func_start("channel", ctx, text)
+
+
 @bot.command(pass_context=True)
-async def v(ctx, *, value):
-    pass 
+async def v(ctx, *, text):
+    await func_start("v", ctx, text)
+
 
 @bot.command(pass_context=True)
 async def pack(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    await ctx.send("`You can play packs with usual $p function.`")
-    if already_is:
-        await bots[bot_index].pack(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].pack(ctx, text)
-        
+    await func_start("pack", ctx, text)
+
+
 @bot.command(pass_context=True)
 async def ss(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].skip_parameters(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].skip_parameters(ctx, text)
+    await func_start("ss", ctx, text)
+
 
 @bot.command(pass_context=True, aliases=Aliases().loop)
 async def pl(ctx, *, text):
-    already_is, bot_index = await check_bot(ctx)
-    if already_is:
-        await bots[bot_index].play_loop(ctx, text)
-    else:
-        bots.append(Bot(len(bots), ctx))
-        await bots[len(bots)-1].play_loop(ctx, text)
+    await func_start("pl", ctx, text)
+
+
+@bot.command(pass_context=False)
+async def key(ctx):
+    await func_start("key", ctx)
+
 
 def DiscordStart():
     bot.run(DiscordCFG().BOT_TOKEN)

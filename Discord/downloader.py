@@ -9,6 +9,8 @@ from vk_api.audio import VkAudio
 import pafy
 import http
 from config import SpotifyCFG
+from Discord.bots import bots
+
 
 class Song:
     def __init__(self, number, url, name, long, is_mp3, source, ctx, loop):
@@ -20,8 +22,11 @@ class Song:
         self.source = source
         self.requestctx = ctx
         self.loop = loop
+        
+        self.stat = True
 
-class Downloader():
+
+class Downloader:
     def __init__(self, queue, ctx, num, cs=0) -> None:
         self.queue = queue
         self.ctx = ctx
@@ -39,58 +44,64 @@ class Downloader():
             try: 
                 return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "youtube", songs, int(pos), loop)
             except IndexError: 
-                return songs, "empty"
+                return "empty"
             except:
-                return songs, "age"
+                return "age"
         
     async def __download_from_yt_url(self, url, source, songs, pos, loop = 1):
         try:
             youtube = pytube.YouTube(url)
         except: 
-            return songs, "link"
+            return "link"
         try: 
             f = youtube.streams.filter(only_audio=True).first()
         except http.client.IncompleteRead:
             try:  
                 f = youtube.streams.filter(only_audio=True).first()
             except: 
-                return songs, "link"
+                return "link"
         except pytube.exceptions.AgeRestrictedError:
-            return songs, "age"
+            return "age"
         except: 
-            return songs, "link"
-        def a():
+            return "link"
+
+        async def a():
             counter = 0
             while counter < 10:
                 try:
                     f.download(output_path="./music/queue", filename=f"{self.bot}-song{self.queue+1}.mp3", skip_existing=False)
-                    return True
+                    self.stat = True
+                    return
                 except:
                     counter += 1
-            return False
-        stat = a()
-        if not stat:
-            return songs, "link"
+            self.stat = False
+        await a()
+        if not self.stat:
+            return "link"
         self.queue += 1
         try:
             h, m, s = map(int, pafy.new(url).duration.split(":"))
             duration = h*3600 + m*60 + s
         except:
-            return songs, "link"
+            return "link"
         if pos != 0:
             print(pos + self.current_song)
             try:
-                songs.insert(self.current_song + pos, Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
-                
+                bots[self.bot].queue += 1
+                bots[self.bot].songs.insert(self.current_song + pos, Song(self.queue, url, f"{pafy.new(url).title}",
+                                                                          duration, True, source, self.ctx, loop))
             except Exception as ex:
                 print(ex)
-                #songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
+                # songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
         else:
-            songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
-        return songs, "ok"
+            bots[self.bot].queue += 1
+            bots[self.bot].songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
+        return "ok"
     
-    async def __download_from_spotify_url(self, url, songs, pos, loop = 1):
-        session = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(client_id=self.spotify_cfg.CLIENT_ID, client_secret=self.spotify_cfg.CLIENT_SECRET))
+    async def __download_from_spotify_url(self, url, songs, pos, loop=1):
+        session = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
+            client_id=self.spotify_cfg.CLIENT_ID,
+            client_secret=self.spotify_cfg.CLIENT_SECRET))
         track = session.track(url)
         artists = track['artists']
         text = ""
@@ -98,7 +109,7 @@ class Downloader():
             text = f"{artists[0]['name']} - {track['name']}"
         else:
             for artist in artists:
-                text+=f"{artist['name']}, "
+                text += f"{artist['name']}, "
             text = text[:len(text)-1] + f" - {track['name']}"
         print(text)
         return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "spotify", songs, pos, loop)

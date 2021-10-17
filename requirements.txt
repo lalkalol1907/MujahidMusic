@@ -12,3 +12,6 @@ youtube-dl
 pymediainfo
 PyTelegramBotAPI
 peewee
+pymysql
+cryptography
+aiogram
