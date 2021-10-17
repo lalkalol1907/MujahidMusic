@@ -8,3 +8,4 @@ t2.py
 *.json
 venv/
 .idea/
+.cache
