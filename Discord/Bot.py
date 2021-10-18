@@ -333,7 +333,6 @@ class Bot:
         voice.resume()
 
     async def __playlist(self, ctx, text):
-        # TODO: Добавить playlist из спотифая
         self.ctx = ctx
         try:
             channel = self.ctx.message.author.voice.channel
@@ -394,6 +393,9 @@ class Bot:
                 await self.ctx.send(embed=Embeds().added_to_queue_pack(self.ctx, added_songs, url))
             else:
                 await self.ctx.send("Error while adding playlist")
+        else:
+            # TODO: Добавить playlist из спотифая
+            pass
 
     async def pack(self, ctx, text):
         self.ctx = ctx

@@ -33,7 +33,8 @@ class TGBot:
         dp.register_message_handler(self.register, state=RegSteps.waiting_for_code)
         dp.register_message_handler(self.ask_discord, state=RegSteps.waiting_for_discord)
 
-    async def downloader(self, file_info, filename):
+    @staticmethod
+    async def downloader(file_info, filename):
         await bot.download_file(file_info.file_path, filename)
 
     async def get_audio(self, msg: types.Message, state: FSMContext):
@@ -71,7 +72,8 @@ class TGBot:
                 return
         await bot.send_message(msg.from_user.id, "Я не запущен на этом сервере, напиши любую команду в дискорде")
 
-    async def reg(self, msg, state: FSMContext):
+    @staticmethod
+    async def reg(msg, state: FSMContext):
         await state.finish()
         await bot.send_message(msg.from_user.id, REG_TEXT)
         await RegSteps.waiting_for_code.set()
