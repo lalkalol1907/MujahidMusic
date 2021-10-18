@@ -9,3 +9,4 @@ t2.py
 venv/
 .idea/
 .cache
+.DS_Store
