@@ -334,6 +334,11 @@ class Bot:
 
     async def __playlist(self, ctx, text):
         self.ctx = ctx
+        def splitter(txt):
+            return txt.split()
+        tracks = 0
+        if len(splitter(text)) != 1:
+            text, tracks = splitter(text)
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
@@ -371,7 +376,9 @@ class Bot:
                 asyncio.get_event_loop().create_task(self.idle_checker())
                 self.idle_checker_bool = True
             added_songs = []
+            i = 0
             for url in playlist.video_urls:
+                if tracks and i >= tracks: break
                 if validators.url(url):
                     dw = Downloader(self.queue, self.ctx, self.bot_number)
                     stat = await dw.analyze(url, self.songs)
@@ -389,11 +396,12 @@ class Bot:
                         await ctx.send("There's an error. Try another querry")
                     elif stat == "age":
                         await ctx.send("One of those videos is age restricted, can't download")
+                i+=1
             if added_songs:
                 await self.ctx.send(embed=Embeds().added_to_queue_pack(self.ctx, added_songs, url))
             else:
                 await self.ctx.send("Error while adding playlist")
-        else:
+        elif "spotify" in text:
             # TODO: Добавить playlist из спотифая
             pass
 
@@ -583,6 +591,9 @@ class Bot:
                                 already_deleted.append(i)
                             self.__log("cleaner except")
             await asyncio.sleep(30)
+            
+    async def author(self, ctx, text):
+        pass# TODO: Создать эту функцию
 
     async def MusicPlayer(self, voice, s=0):
         self.stop_voice_2 = False
