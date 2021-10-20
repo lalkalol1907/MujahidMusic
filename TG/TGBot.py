@@ -69,7 +69,9 @@ class TGBot:
                             "tg", None, 1)
                 bots[i].queue += 1
                 bots[i].songs.append(song)
-                await bots[i].activate_tg()
+                stat = await bots[i].activate_tg()
+                if not stat:
+                    await bot.send_message(msg.from_user.id, "Я не подключен к каналу на этом сервере, напиши $connect в дискорде")
                 return
         await bot.send_message(msg.from_user.id, "Я не запущен на этом сервере, напиши любую команду в дискорде")
 

@@ -71,7 +71,7 @@ class Bot:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
             await self.ctx.send("You are not connected to any channel, connecting to default channel")
-            channel = "Основной"
+            return
         self.__log(f"Connected channel = {channel}")
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         if voice and voice.is_connected():
@@ -779,4 +779,15 @@ class Bot:
                 if self.songs[i].source == 'tg':
                     return i
         song = self.songs[find_song()]
-        await self.ctx.send(Embeds().added_tg(song.name, song.long, self.queue, self.current_song))
+        if self.isp:
+            await self.ctx.send(Embeds().added_tg(song.name, song.long, self.queue, self.current_song))
+            return True
+        else:
+            voice = get(bot.voice_clients, guild=self.ctx.guild)
+            if voice and voice.is_connected():
+                self.isp = True
+                asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+                return True
+            else:
+                await self.ctx.send("To play TG song type $connect in discord and send audio again!")
+                return False
