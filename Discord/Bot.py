@@ -738,7 +738,6 @@ class Bot:
             await asyncio.sleep(3)
             
     async def activate_tg(self):
-        # TODO: Допилить эту функцию. Подключение к каналу, проверка isp, разных чекеров, короче как в async def play()
         def find_song():
             for i in range(len(self.songs) - 1, -1, -1):
                 if self.songs[i].source == 'tg':
@@ -756,5 +755,6 @@ class Bot:
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
                 return True
             else:
+                # TODO: Допилить эту функцию. Подключение к каналу через отправителя 
                 await self.ctx.send("To play TG song type $connect in discord and send audio again!")
                 return False
