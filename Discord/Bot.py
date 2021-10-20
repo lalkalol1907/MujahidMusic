@@ -61,6 +61,18 @@ class Bot:
             self.fscount += 1
         else:
             await self.ctx.send("There's nothing to skip")
+            
+    async def soprogs_start(self):
+        if not self.kick_checker_bool:
+            asyncio.get_event_loop().create_task(self.kick_checker())
+            self.kick_checker_bool = True
+            self.allower = True
+        if not self.cleaner_bool:
+            asyncio.get_event_loop().create_task(self.cleaner())
+            self.cleaner_bool = True
+        if not self.idle_checker_bool:
+            asyncio.get_event_loop().create_task(self.idle_checker())
+            self.idle_checker_bool = True
 
     async def __check_members_in_channels(self):
         pass
@@ -158,19 +170,10 @@ class Bot:
                                                   self.current_song))
                 self.__log(f"song {song.name} added to queue, {song.url}")
                 pass
-            if not self.kick_checker_bool:
-                asyncio.get_event_loop().create_task(self.kick_checker())
-                self.kick_checker_bool = True
-                self.allower = True
-            if not self.isp:
+            else:
                 self.isp = True
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            if not self.cleaner_bool:
-                asyncio.get_event_loop().create_task(self.cleaner())
-                self.cleaner_bool = True
-            if not self.idle_checker_bool:
-                asyncio.get_event_loop().create_task(self.idle_checker())
-                self.idle_checker_bool = True
+            self.soprogs_start()
         elif stat == "empty":
             await ctx.send("No results for your query((")
         elif stat == "link":
@@ -240,19 +243,10 @@ class Bot:
                                                   self.current_song, song.loop))
                 self.__log(f"song {song.name} added to queue, {song.url}")
                 pass
-            if not self.kick_checker_bool:
-                asyncio.get_event_loop().create_task(self.kick_checker())
-                self.kick_checker_bool = True
-                self.allower = True
-            if not self.isp:
+            else:
                 self.isp = True
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            if not self.cleaner_bool:
-                asyncio.get_event_loop().create_task(self.cleaner())
-                self.cleaner_bool = True
-            if not self.idle_checker_bool:
-                asyncio.get_event_loop().create_task(self.idle_checker())
-                self.idle_checker_bool = True
+            self.soprogs_start()
         elif stat == "empty":
             await ctx.send("No results for your querry((")
         elif stat == "link":
@@ -315,19 +309,10 @@ class Bot:
                                                       self.current_song))
                 self.__log(f"song {song.name} added to queue, {song.url}")
                 pass
-            if not self.kick_checker_bool:
-                asyncio.get_event_loop().create_task(self.kick_checker())
-                self.kick_checker_bool = True
-                self.allower = True
-            if not self.isp:
+            else:
                 self.isp = True
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            if not self.cleaner_bool:
-                asyncio.get_event_loop().create_task(self.cleaner())
-                self.cleaner_bool = True
-            if not self.idle_checker_bool:
-                asyncio.get_event_loop().create_task(self.idle_checker())
-                self.idle_checker_bool = True
+            self.soprogs_start()
         elif stat == "empty":
             await ctx.send("No results for your querry((")
         elif stat == "link":
@@ -349,8 +334,7 @@ class Bot:
 
     async def __playlist(self, ctx, text):
         self.ctx = ctx
-        def splitter(txt):
-            return txt.split()
+        splitter = lambda txt: txt.split()
         full = False
         tracks = 15
         if len(splitter(text)) != 1:
@@ -390,19 +374,6 @@ class Bot:
         if 'youtube' in text or 'youtu.be' in text:
             playlist = Playlist(text)
             playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
-            sq = self.queue
-            if not self.kick_checker_bool:
-                asyncio.get_event_loop().create_task(self.kick_checker())
-                self.kick_checker_bool = True
-                self.allower = True
-            if not self.cleaner_bool:
-                asyncio.get_event_loop().create_task(self.cleaner())
-                self.cleaner_bool = True
-            if not self.idle_checker_bool:
-                asyncio.get_event_loop().create_task(self.idle_checker())
-                self.idle_checker_bool = True
-            added_songs = []
-            i = 0
             urls = playlist.video_urls
         elif "spotify" in text:
             session = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
@@ -414,7 +385,10 @@ class Bot:
         else:
             await self.ctx.send("Error, neither spotify nor yt source!")
             return
-                
+        sq = self.queue
+        self.soprogs_start()
+        added_songs = []
+        i = 0
         for url in urls:
             if tracks and i >= tracks and not full: break
             if validators.url(url):
@@ -465,16 +439,7 @@ class Bot:
                 except:
                     await self.ctx.send("Can't connect")
         await self.ctx.send(f"Adding to queue your pack...")
-        if not self.kick_checker_bool:
-            asyncio.get_event_loop().create_task(self.kick_checker())
-            self.kick_checker_bool = True
-            self.allower = True
-        if not self.cleaner_bool:
-            asyncio.get_event_loop().create_task(self.cleaner())
-            self.cleaner_bool = True
-        if not self.idle_checker_bool:
-            asyncio.get_event_loop().create_task(self.idle_checker())
-            self.idle_checker_bool = True
+        self.soprogs_start()
         added_songs = []
         for url in urls:
             if validators.url(url):
@@ -778,6 +743,7 @@ class Bot:
             for i in range(len(self.songs) - 1, -1, -1):
                 if self.songs[i].source == 'tg':
                     return i
+                
         song = self.songs[find_song()]
         if self.isp:
             await self.ctx.send(Embeds().added_tg(song.name, song.long, self.queue, self.current_song))
@@ -786,6 +752,7 @@ class Bot:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
             if voice and voice.is_connected():
                 self.isp = True
+                self.soprogs_start()
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
                 return True
             else:
