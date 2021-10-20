@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-# TODO: Переписать клавиатуры на aiogram
+
 
 def reg_kbd():
     markup = InlineKeyboardMarkup()

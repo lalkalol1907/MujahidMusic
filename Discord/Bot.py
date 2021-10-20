@@ -10,6 +10,9 @@ import datetime
 import validators
 from pytube import Playlist
 import re
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+from config import SpotifyCFG
 
 bot = commands.Bot(command_prefix='$')
 
@@ -187,9 +190,21 @@ class Bot:
             if text[0] == ' ':
                 text = text[1:]
         except Exception as ex:
-            print(ex)
-            await ctx.send('Type "$pl <loop counter>; <name or url>"')
-            return
+            splitted = input_str.split()
+            try:
+                c = int(splitted[len(splitted)-1])
+                if c == 1: 
+                    temp = 1
+                else: 
+                    temp = math.floor(math.log10(c))
+                text = input_str[temp + 2:]
+                if text[0] == ' ':
+                    text = text[1:]
+            except:
+                print(ex)
+                await ctx.send('Type "$pl <loop counter>; <name or url>"')
+                return
+            
         if 'playlist' in text and validators.url(text):
             await ctx.send("Can't playing playlists in a loop")
             return
@@ -336,9 +351,19 @@ class Bot:
         self.ctx = ctx
         def splitter(txt):
             return txt.split()
-        tracks = 0
+        full = False
+        tracks = 15
         if len(splitter(text)) != 1:
             text, tracks = splitter(text)
+            try:
+                tracks = int(tracks)
+            except:
+                tracks, text = splitter(text)
+                try:
+                    tracks = int(tracks)
+                except:
+                    if '-f' in text:
+                        full = True
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
@@ -361,6 +386,7 @@ class Bot:
                 except:
                     await self.ctx.send("Can't connect")
         await self.ctx.send(f"Adding to queue your playlist...")
+        urls = []
         if 'youtube' in text or 'youtu.be' in text:
             playlist = Playlist(text)
             playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
@@ -377,34 +403,43 @@ class Bot:
                 self.idle_checker_bool = True
             added_songs = []
             i = 0
-            for url in playlist.video_urls:
-                if tracks and i >= tracks: break
-                if validators.url(url):
-                    dw = Downloader(self.queue, self.ctx, self.bot_number)
-                    stat = await dw.analyze(url, self.songs)
-                    print(self.queue)
-                    if stat == "ok":
-                        added_songs.append(self.songs[self.queue])
-                        if not self.isp:
-                            self.isp = True
-                            print(self.isp)
-                            asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-                        await asyncio.sleep(2)
-                    elif stat == "empty":
-                        await ctx.send("No results for your querry((")
-                    elif stat == "link":
-                        await ctx.send("There's an error. Try another querry")
-                    elif stat == "age":
-                        await ctx.send("One of those videos is age restricted, can't download")
-                i+=1
+            urls = playlist.video_urls
+        elif "spotify" in text:
+            session = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
+            client_id=SpotifyCFG().CLIENT_ID,
+            client_secret=SpotifyCFG().CLIENT_SECRET))
+            pl = session.playlist(text)
+            for track in pl['tracks']['items']:
+                urls.append(track['track']['external_urls']['spotify'])
+        else:
+            await self.ctx.send("Error, neither spotify nor yt source!")
+            return
+                
+        for url in urls:
+            if tracks and i >= tracks and not full: break
+            if validators.url(url):
+                dw = Downloader(self.queue, self.ctx, self.bot_number)
+                stat = await dw.analyze(url, self.songs)
+                print(self.queue)
+                if stat == "ok":
+                    added_songs.append(self.songs[self.queue])
+                    if not self.isp:
+                        self.isp = True
+                        print(self.isp)
+                        asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+                    await asyncio.sleep(2)
+                elif stat == "empty":
+                    await ctx.send("No results for your querry((")
+                elif stat == "link":
+                    await ctx.send("There's an error. Try another querry")
+                elif stat == "age":
+                       await ctx.send("One of those videos is age restricted, can't download")
+            i+=1
             if added_songs:
                 await self.ctx.send(embed=Embeds().added_to_queue_pack(self.ctx, added_songs, url))
             else:
                 await self.ctx.send("Error while adding playlist")
-        elif "spotify" in text:
-            # TODO: Добавить playlist из спотифая
-            pass
-
+                
     async def pack(self, ctx, text):
         self.ctx = ctx
         urls = text.split()
@@ -593,8 +628,21 @@ class Bot:
             await asyncio.sleep(30)
             
     async def author(self, ctx, text):
-        pass# TODO: Создать эту функцию
-
+        def splitter(t):
+            splitted = t.split()
+            if len(splitted) == 1:
+                return 5, t
+            try:
+                quota = int(splitted[0])
+                t = t.replace(f"{quota}", " ")
+                while t[0] == ' ': 
+                    t = t[1:]
+                return quota, t
+            except:
+                return 5, t
+        # TODO: Создать эту функцию
+        count, text = splitter(text)
+        
     async def MusicPlayer(self, voice, s=0):
         self.stop_voice_2 = False
         self.__log()
@@ -723,3 +771,12 @@ class Bot:
                     await self.ctx.send(f"Disconnected due to inactivity")
                 counter = 0
             await asyncio.sleep(3)
+            
+    async def activate_tg(self):
+        # TODO: Допилить эту функцию. Подключение к каналу, проверка isp, разных чекеров, короче как в async def play()
+        def find_song():
+            for i in range(len(self.songs) - 1, -1, -1):
+                if self.songs[i].source == 'tg':
+                    return i
+        song = self.songs[find_song()]
+        await self.ctx.send(Embeds().added_tg(song.name, song.long, self.queue, self.current_song))

@@ -69,6 +69,7 @@ class TGBot:
                             "tg", None, 1)
                 bots[i].queue += 1
                 bots[i].songs.append(song)
+                await bots[i].activate_tg()
                 return
         await bot.send_message(msg.from_user.id, "Я не запущен на этом сервере, напиши любую команду в дискорде")
 
