@@ -13,6 +13,7 @@ import re
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from config import SpotifyCFG
+from DB.DB import UserDB
 
 bot = commands.Bot(command_prefix='$')
 
@@ -44,6 +45,35 @@ class Bot:
         self.bot_number = num
         self.server = ctx.message.guild
         self.guild_id = ctx.message.guild.id
+            
+    async def __soprogs_start(self):
+        if not self.kick_checker_bool:
+            asyncio.get_event_loop().create_task(self.kick_checker())
+            self.kick_checker_bool = True
+            self.allower = True
+        if not self.cleaner_bool:
+            asyncio.get_event_loop().create_task(self.cleaner())
+            self.cleaner_bool = True
+        if not self.idle_checker_bool:
+            asyncio.get_event_loop().create_task(self.idle_checker())
+            self.idle_checker_bool = True
+            
+    async def __voice_connector(self, channel):
+        voice = get(bot.voice_clients, guild=self.ctx.guild)
+        if voice and voice.is_connected():
+            try:
+                await voice.move_to(channel)
+            except:
+                await self.ctx.send("Can't connect")
+        else:
+            try:
+                voice = await channel.connect()
+                await self.ctx.send(f"Connected to `#{channel}`")
+            except:
+                try:
+                    await voice.move_to(channel)
+                except:
+                    await self.ctx.send("Can't connect")
 
     def __log(self, arg=""):
         try:
@@ -61,21 +91,6 @@ class Bot:
             self.fscount += 1
         else:
             await self.ctx.send("There's nothing to skip")
-            
-    async def soprogs_start(self):
-        if not self.kick_checker_bool:
-            asyncio.get_event_loop().create_task(self.kick_checker())
-            self.kick_checker_bool = True
-            self.allower = True
-        if not self.cleaner_bool:
-            asyncio.get_event_loop().create_task(self.cleaner())
-            self.cleaner_bool = True
-        if not self.idle_checker_bool:
-            asyncio.get_event_loop().create_task(self.idle_checker())
-            self.idle_checker_bool = True
-
-    async def __check_members_in_channels(self):
-        pass
 
     async def connect(self, ctx):
         self.ctx = ctx
@@ -85,36 +100,11 @@ class Bot:
             await self.ctx.send("You are not connected to any channel, connecting to default channel")
             return
         self.__log(f"Connected channel = {channel}")
-        voice = get(bot.voice_clients, guild=self.ctx.guild)
-        if voice and voice.is_connected():
-            try:
-                await voice.move_to(channel)
-            except:
-                await self.ctx.send("Can't connect")
-        else:
-            try:
-                voice = await channel.connect()
-                await self.ctx.send(f"Connected to `#{channel}`")
-            except:
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await self.ctx.send("Can't connect")
-
+        await self.__voice_connector(channel)
+        
     async def channel(self, ctx, ch):
         self.ctx = ctx
-        try:
-            channel = ch
-            voice = get(bot.voice_clients, guild=self.ctx.guild)
-            if voice and voice.is_connected():
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await ctx.send("Incorrect channel")
-            else:
-                voice = await channel.connect()
-        except:
-            await self.ctx.send("Incorrect channel")
+        await self.__voice_connector(ch)
 
     async def p(self, ctx, text):  # play
         def __packcheck():
@@ -141,24 +131,11 @@ class Bot:
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
-            await self.ctx.send("You are not connected to any channel, connecting to default channel")
-            channel = "Основной"
+            await self.ctx.send("You're not connected to any channel!")
+            return
         self.__log(f"Bot: p: channel = {channel}")
+        await self.__voice_connector(channel)
         voice = get(bot.voice_clients, guild=self.ctx.guild)
-        if voice and voice.is_connected():
-            try:
-                await voice.move_to(channel)
-            except:
-                await self.ctx.send("Can't connect")
-        else:
-            try:
-                voice = await channel.connect()
-                await self.ctx.send(f"Connected to `#{channel}`")
-            except:
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await self.ctx.send("Can't connect")
         await self.ctx.send(f"Searching and downloading: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number)
         stat = await dw.analyze(text, self.songs)
@@ -173,7 +150,7 @@ class Bot:
             else:
                 self.isp = True
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            self.soprogs_start()
+            await self.__soprogs_start()
         elif stat == "empty":
             await ctx.send("No results for your query((")
         elif stat == "link":
@@ -214,24 +191,11 @@ class Bot:
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
-            await self.ctx.send("You are not connected to any channel, connecting to default channel")
-            channel = "Основной"
+            await self.ctx.send("You're not connected to any channel!")
+            return
         self.__log(f"Bot: p: channel = {channel}")
         voice = get(bot.voice_clients, guild=self.ctx.guild)
-        if voice and voice.is_connected():
-            try:
-                await voice.move_to(channel)
-            except:
-                await self.ctx.send("Can't connect")
-        else:
-            try:
-                voice = await channel.connect()
-                await self.ctx.send(f"Connected to `#{channel}`")
-            except:
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await self.ctx.send("Can't connect")
+        await self.__voice_connector(channel)
         await self.ctx.send(f"Searching and downloading: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number)
         stat = await dw.analyze(text, self.songs, c)
@@ -246,7 +210,7 @@ class Bot:
             else:
                 self.isp = True
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            self.soprogs_start()
+            await self.__soprogs_start()
         elif stat == "empty":
             await ctx.send("No results for your querry((")
         elif stat == "link":
@@ -276,24 +240,11 @@ class Bot:
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
-            await self.ctx.send("You are not connected to any channel, connecting to default channel")
-            channel = "Основной"
+            await self.ctx.send("You're not connected to any channel!")
+            return
         self.__log(f"Bot: p: channel = {channel}")
+        await self.__voice_connector(channel)
         voice = get(bot.voice_clients, guild=self.ctx.guild)
-        if voice and voice.is_connected():
-            try:
-                await voice.move_to(channel)
-            except:
-                await self.ctx.send("Can't connect")
-        else:
-            try:
-                voice = await channel.connect()
-                await self.ctx.send(f"Connected to `#{channel}`")
-            except:
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await self.ctx.send("Can't connect")
         if send_key:
             await self.ctx.send(f"Searching and downloading: `{text}`...")
         else:
@@ -312,7 +263,7 @@ class Bot:
             else:
                 self.isp = True
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-            self.soprogs_start()
+            await self.__soprogs_start()
         elif stat == "empty":
             await ctx.send("No results for your querry((")
         elif stat == "link":
@@ -351,25 +302,11 @@ class Bot:
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
-            await self.ctx.send("You are not connected to any channel, connecting to default channel")
-            channel = "Основной"
+            await self.ctx.send("You're not connected to any channel!")
+            return
         self.__log(f"Bot: p: channel = {channel}")
+        await self.__voice_connector(channel)
         voice = get(bot.voice_clients, guild=self.ctx.guild)
-        if voice and voice.is_connected():
-            try:
-                await voice.move_to(channel)
-            except:
-                await self.ctx.send("Can't connect")
-        else:
-            try:
-                voice = await channel.connect()
-                await self.ctx.send(f"Connected to `#{channel}`")
-            except:
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await self.ctx.send("Can't connect")
-        await self.ctx.send(f"Adding to queue your playlist...")
         urls = []
         if 'youtube' in text or 'youtu.be' in text:
             playlist = Playlist(text)
@@ -386,7 +323,7 @@ class Bot:
             await self.ctx.send("Error, neither spotify nor yt source!")
             return
         sq = self.queue
-        self.soprogs_start()
+        await self.__soprogs_start()
         added_songs = []
         i = 0
         for url in urls:
@@ -420,26 +357,13 @@ class Bot:
         try:
             channel = self.ctx.message.author.voice.channel
         except AttributeError:
-            await self.ctx.send("You are not connected to any channel, connecting to default channel")
-            channel = "Основной"
+            await self.ctx.send("You're not connected to any channel!")
+            return
         self.__log(f"Bot: p: channel = {channel}")
+        await self.__voice_connector(channel)
         voice = get(bot.voice_clients, guild=self.ctx.guild)
-        if voice and voice.is_connected():
-            try:
-                await voice.move_to(channel)
-            except:
-                await self.ctx.send("Can't connect")
-        else:
-            try:
-                voice = await channel.connect()
-                await self.ctx.send(f"Connected to `#{channel}`")
-            except:
-                try:
-                    await voice.move_to(channel)
-                except:
-                    await self.ctx.send("Can't connect")
         await self.ctx.send(f"Adding to queue your pack...")
-        self.soprogs_start()
+        await self.__soprogs_start()
         added_songs = []
         for url in urls:
             if validators.url(url):
@@ -737,7 +661,10 @@ class Bot:
                 counter = 0
             await asyncio.sleep(3)
             
-    async def activate_tg(self):
+    async def __find_requester_ch(self, Tag):
+        pass
+            
+    async def activate_tg(self, tg_user_id):
         def find_song():
             for i in range(len(self.songs) - 1, -1, -1):
                 if self.songs[i].source == 'tg':
@@ -751,10 +678,16 @@ class Bot:
             voice = get(bot.voice_clients, guild=self.ctx.guild)
             if voice and voice.is_connected():
                 self.isp = True
-                self.soprogs_start()
+                await self.__soprogs_start()
                 asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
                 return True
             else:
-                # TODO: Допилить эту функцию. Подключение к каналу через отправителя 
-                await self.ctx.send("To play TG song type $connect in discord and send audio again!")
-                return False
+                ds_id = UserDB().get_ds_from_tg(tg_user_id)
+                UserTag = ds_id[ds_id.find('#')+1:]
+                channel = self.__find_requester_ch(UserTag)
+                if not channel: 
+                    await self.ctx.send("To play TG song type $connect in discord and send audio again!")
+                    return False
+                await self.__voice_connector(channel)
+                await self.__soprogs_start()
+                # TODO: Допилить эту функцию. Подключение к каналу через отправителя

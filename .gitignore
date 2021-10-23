@@ -10,3 +10,4 @@ venv/
 .idea/
 .cache
 .DS_Store
+*.txt
