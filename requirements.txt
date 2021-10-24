@@ -10,7 +10,6 @@ PyNaCl
 pafy
 youtube-dl
 pymediainfo
-PyTelegramBotAPI
 peewee
 pymysql
 cryptography
