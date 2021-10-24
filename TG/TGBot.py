@@ -7,6 +7,7 @@ from TG.Keyboards import *
 from config import TGCFG
 from Discord.downloader import Song
 from Discord.bots import bots
+import asyncio
 
 REG_TEXT = "Введи регистрационный код бота на сервере(узнать можно через команды $key на нужном сервере)"
 bot = Bot(TGCFG().BOT_TOKEN)
@@ -42,9 +43,9 @@ class TGBot:
         self.file_info = msg
         await state.finish()
         if not servers:
-            await msg.answer("You're not registered", reply_markup=reg_kbd())
+            await msg.answer("You're not registered, type /reg") # reply_markup=reg_kbd()
         else:
-            await msg.answer("Выбери сервер, к которому ты сейчас подключен")  # reply_markup=servers_kbd(servers)
+            await msg.answer("Выбери сервер, к которому ты сейчас подключен", reply_markup=servers_kbd(servers))  # reply_markup=servers_kbd(servers)
             # bot.register_next_step_handler(msg, lambda m: choose_channel(m, file_info))
             await AudioSteps.waiting_for_channel.set()
 
@@ -65,13 +66,23 @@ class TGBot:
                 dsbot, queue = bots[i].bot_number, bots[i].queue
                 filename = f"./music/queue/{dsbot}-song{queue + 1}.mp3"
                 await self.downloader(await bot.get_file(self.file_info.audio.file_id), filename)
-                song = Song(queue + 1, "", self.file_info.audio.file_name, int(self.file_info.audio.duration), True,
-                            "tg", None, 1)
+                try:
+                    song = Song(queue + 1, "", self.file_info.audio.file_name, int(self.file_info.audio.duration), True,
+                            "tg", None, 1, f"https://api.telegram.org/file/bot{TGCFG().BOT_TOKEN}/{(await bot.get_file((await bot.get_user_profile_photos(msg.from_user.id))['photos'][0][0]['file_id'])).file_path}")
+                except: 
+                    song = Song(queue + 1, "", self.file_info.audio.file_name, int(self.file_info.audio.duration), True,
+                            "tg", None, 1, "")
                 bots[i].queue += 1
+                bots[i].TG.new_tg = True
+                print((await bot.get_user_profile_photos(msg.from_user.id))['photos'][0][0]['file_id'])
+                try:
+                    bots[i].TG.user_pic_url = f"https://api.telegram.org/file/bot{TGCFG().BOT_TOKEN}/{(await bot.get_file((await bot.get_user_profile_photos(msg.from_user.id))['photos'][0][0]['file_id'])).file_path}"
+                except:
+                    bots[i].TG.user_pic_url = ""
                 bots[i].songs.append(song)
-                stat = await bots[i].activate_tg(msg.from_user.id)
-                if not stat:
-                    await bot.send_message(msg.from_user.id, "Я не подключен к каналу на этом сервере, напиши $connect в дискорде")
+                """if stat:
+                    await bot.send_message(msg.from_user.id, "Готово")
+                await bot.send_message(msg.from_user.id, "Я не подключен к каналу на этом сервере, напиши $connect в дискорде")"""
                 return
         await bot.send_message(msg.from_user.id, "Я не запущен на этом сервере, напиши любую команду в дискорде")
 
@@ -91,8 +102,8 @@ class TGBot:
                 print(server.reg_key)
                 if int(server.reg_key) == int(msg.text):
                     self.server = server
+                    await bot.send_message(msg.from_user.id, "Введи свой дискорд, шавка!")
                     await RegSteps.waiting_for_discord.set()
-                    # bot.send_message(msg.from_user.id, "Возникла ошибка, попробуй заегистрироваться еще раз")
                     return
             except Exception as ex:
                 print(ex)

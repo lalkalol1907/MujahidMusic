@@ -46,8 +46,6 @@ class UserDB:
         except:
             return []
         
-    def get_ds_from_tg(self, tg):
-        pass
 
 class ServerDB:
     def __init__(self):

@@ -19,6 +19,10 @@ bot = commands.Bot(command_prefix='$')
 
 
 class Bot:
+    class TG:
+        new_tg = False
+        user_pic_url = ""
+        
     def __init__(self, num, ctx):
         self.queue = -1
         self.isp = False
@@ -45,7 +49,8 @@ class Bot:
         self.bot_number = num
         self.server = ctx.message.guild
         self.guild_id = ctx.message.guild.id
-            
+        asyncio.get_event_loop().create_task(self.activate_tg())
+        
     async def __soprogs_start(self):
         if not self.kick_checker_bool:
             asyncio.get_event_loop().create_task(self.kick_checker())
@@ -107,6 +112,7 @@ class Bot:
         await self.__voice_connector(ch)
 
     async def p(self, ctx, text):  # play
+        self.ctx = ctx
         def __packcheck():
             arr = text.split()
             url_flag = True
@@ -124,7 +130,7 @@ class Bot:
         if __packcheck():
             await self.pack(ctx, text)
             return
-        self.ctx = ctx
+
         if 'playlist' in text and validators.url(text):
             asyncio.get_event_loop().create_task(self.__playlist(ctx, text))
             return
@@ -569,6 +575,8 @@ class Bot:
                         if song.source != "tg":
                             await song.requestctx.send(
                                 embed=Embeds().playing(song.name, song.url, int(dur), song.requestctx))
+                        else:
+                            await self.ctx.send(embed=Embeds().TG_playing(song.name, int(dur), song.TGAva))
                     elif not EmbedSent:
                         await song.requestctx.send(
                             embed=Embeds().playing(song.name, song.url, int(dur), song.requestctx, song.loop))
@@ -660,34 +668,32 @@ class Bot:
                     await self.ctx.send(f"Disconnected due to inactivity")
                 counter = 0
             await asyncio.sleep(3)
-            
-    async def __find_requester_ch(self, Tag):
-        pass
-            
-    async def activate_tg(self, tg_user_id):
-        def find_song():
-            for i in range(len(self.songs) - 1, -1, -1):
-                if self.songs[i].source == 'tg':
-                    return i
-                
-        song = self.songs[find_song()]
-        if self.isp:
-            await self.ctx.send(Embeds().added_tg(song.name, song.long, self.queue, self.current_song))
-            return True
-        else:
-            voice = get(bot.voice_clients, guild=self.ctx.guild)
-            if voice and voice.is_connected():
-                self.isp = True
-                await self.__soprogs_start()
-                asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
-                return True
-            else:
-                ds_id = UserDB().get_ds_from_tg(tg_user_id)
-                UserTag = ds_id[ds_id.find('#')+1:]
-                channel = self.__find_requester_ch(UserTag)
-                if not channel: 
-                    await self.ctx.send("To play TG song type $connect in discord and send audio again!")
-                    return False
-                await self.__voice_connector(channel)
-                await self.__soprogs_start()
+        
+    async def activate_tg(self):
+        while True:
+            if not self.TG.new_tg:
+                await asyncio.sleep(2)
+                continue
+            def find_song():
+                for i in range(len(self.songs) - 1, -1, -1):
+                    if self.songs[i].source == 'tg':
+                        return i
+            print('aboba')
+            try:
+                song = self.songs[find_song()]
+                if self.isp:
+                    await self.ctx.send(embed=Embeds().added_tg(song.name, song.long, self.queue, self.current_song, self.TG.user_pic_url))
+                    self.TG.new_tg = False
+                else:
+                    self.TG.new_tg = False
+                    voice = get(bot.voice_clients, guild=self.ctx.guild)
+                    if voice and voice.is_connected():
+                        self.isp = True
+                        await self.__soprogs_start()
+                        asyncio.get_event_loop().create_task(self.MusicPlayer(voice, self.sss))
+                    else:
+                        await self.ctx.send("To play TG song type $connect in discord and send audio again!")
+            except TypeError:
+                self.TG.new_tg = False
+            await asyncio.sleep(2)
                 # TODO: Допилить эту функцию. Подключение к каналу через отправителя

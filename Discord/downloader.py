@@ -13,7 +13,7 @@ from Discord.bots import bots
 
 
 class Song:
-    def __init__(self, number, url, name, long, is_mp3, source, ctx, loop):
+    def __init__(self, number, url, name, long, is_mp3, source, ctx, loop, TGAva = ""):
         self.number = number
         self.url = url
         self.name = name
@@ -22,6 +22,7 @@ class Song:
         self.source = source
         self.requestctx = ctx
         self.loop = loop
+        self.TGAva = TGAva
         
         self.stat = True
 

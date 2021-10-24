@@ -26,6 +26,7 @@ async def func_start(command, ctx, text=""):
     if already_is:
         num = bot_index
     else:
+        print(ctx)
         bots.append(Bot(len(bots), ctx))
         ServerDB().reg(ctx.guild)
         num = len(bots) - 1

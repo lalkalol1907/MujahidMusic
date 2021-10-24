@@ -53,11 +53,15 @@ class Embeds:
             embed.add_field(name="Loop:", value=f"`{int(loop)}`")
         return embed
     
-    def added_tg(self, title, time, queue, current_song):
+    def added_tg(self, title, time, queue, current_song, avatar_url):
         embed = discord.Embed(title=title, color=0xA2D5C6)
-        embed.set_author(name="Added to queue from TG:") # TODO: Добавить аву автора из дс или тг
+        if avatar_url != "":
+            embed.set_author(name="Added TG song:", icon_url=avatar_url)
+        else:
+            embed.set_author(name="Added TG song:")
         embed.add_field(name="Duration:", value=f"`{self.__time_format1(time)}`", inline=True)
         embed.add_field(name="Position in queue:", value=f"`{queue - current_song}`", inline=True)
+        return embed
 
     def added_to_queue_pack(self, ctx, songsarray, url="") -> discord.Embed:
         title = "User playlist"
@@ -83,6 +87,18 @@ class Embeds:
         if loop:
             embed.add_field(name="Loop: ", value=f"`{int(loop)}`", inline=True)
         return embed
+    
+    def TG_playing(self, name, dur, ava, loop = None):
+        embed = discord.Embed(title=name, color=0x077B8A)
+        if ava != "":
+            embed.set_author(name="Playing:", icon_url=ava)
+        else:
+            embed.set_author(name="Playing:")
+        embed.set_thumbnail(url=self.__get_tb(name))
+        embed.add_field(name="Duration:", value=f"`{self.__time_format1(dur)}`", inline=True)
+        if loop:
+            embed.add_field(name="Loop: ", value=f"`{int(loop)}`", inline=True)
+        return embed
 
     @staticmethod
     def __formatted_line(time1, time2) -> str:
@@ -96,7 +112,7 @@ class Embeds:
         return YoutubeSearch(title, max_results=1).to_dict()[0]['thumbnails'][0]
 
     def queue(self, songs, current_song, ctx, ctime, curloop) -> discord.Embed:
-        desc = f"{self.__formatted_line(ctime, songs[current_song].long)}\n`Elapsed: {self.__time_format1(int(songs[current_song].long - ctime))}`" + f"\n`Loop: {curloop}{int(songs[current_song.loop])}`" * (int(songs[current_song].loop) != 1)
+        desc = f"{self.__formatted_line(ctime, songs[current_song].long)}\n`Elapsed: {self.__time_format1(int(songs[current_song].long - ctime))}`" + f"\n`Loop: {curloop}{int(songs[current_song].loop)}`" * (int(songs[current_song].loop) != 1)
         embed = discord.Embed(title=f"1) {songs[current_song].name}", url=f"{songs[current_song].url}", description=desc, color=0x5C3C92)
         try:
             embed.set_thumbnail(url=self.__get_tb(songs[current_song].name))
