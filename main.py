@@ -1,5 +1,5 @@
 from Discord.Bot import Bot, bot
-from Discord.bots import bots
+from Discord.vars import bots
 from config import DiscordCFG
 from DB.DB import *
 import asyncio

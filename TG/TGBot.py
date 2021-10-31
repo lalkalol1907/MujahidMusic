@@ -6,8 +6,9 @@ from DB.DB import *
 from TG.Keyboards import *
 from config import TGCFG
 from Discord.downloader import Song
-from Discord.bots import bots
+from Discord.vars import bots
 import asyncio
+import validators
 
 REG_TEXT = "Введи регистрационный код бота на сервере(узнать можно через команды $key на нужном сервере)"
 bot = Bot(TGCFG().BOT_TOKEN)
@@ -33,10 +34,28 @@ class TGBot:
         dp.register_message_handler(self.reg, commands=['reg', 'register', 'r'], state='*')
         dp.register_message_handler(self.register, state=RegSteps.waiting_for_code)
         dp.register_message_handler(self.ask_discord, state=RegSteps.waiting_for_discord)
+        dp.register_message_handler(self.p_command, commands=['p'])
+        dp.register_message_handler(self.url_handler, lambda msg: validators.url(msg.text)) # TODO: фильтр url
+        dp.register_message_handler(self.text_handler)
 
     @staticmethod
     async def downloader(file_info, filename):
         await bot.download_file(file_info.file_path, filename)
+        
+    async def p_command(self, msg: types.Message):
+        if validators.url(msg.text):
+            await self.url_handler(msg)
+            return
+        pass
+        
+    async def url_handler(self, msg: types.Message):
+        if "youtube" or "youtu.be" in msg.text:
+            pass
+        elif "spotify" in msg.text:
+            pass
+        
+    async def text_handler(self, msg):
+        pass
 
     async def get_audio(self, msg: types.Message, state: FSMContext):
         servers = list(set(UserDB().get_servers(msg.from_user.id)))

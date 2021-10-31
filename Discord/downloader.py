@@ -9,7 +9,7 @@ from vk_api.audio import VkAudio
 import pafy
 import http
 from config import SpotifyCFG
-from Discord.bots import bots
+from Discord.vars import bots
 
 
 class Song:
