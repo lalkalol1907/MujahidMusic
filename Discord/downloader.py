@@ -90,7 +90,7 @@ class Downloader:
             print(pos + self.current_song)
             try:
                 bots[self.bot].queue += 1
-                bots[self.bot].songs.insert(self.current_song + pos, Song(self.queue, url, f"{pafy.new(url).title}",
+                bots[self.bot].songs.insert(self.current_song + pos, Song(self.queue, url, f"{f.title}",
                                                                           duration, True, source, self.ctx, loop))
             except Exception as ex:
                 print(ex)
