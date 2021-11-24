@@ -144,7 +144,7 @@ class Bot:
         voice = get(bot.voice_clients, guild=self.ctx.guild)
         await self.ctx.send(f"Searching and downloading: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number)
-        stat = await dw.analyze(text, self.songs)
+        stat = await dw.analyze(text)
         if stat == "ok":
             if self.isp:
                 song = self.songs[self.queue]
@@ -204,7 +204,7 @@ class Bot:
         await self.__voice_connector(channel)
         await self.ctx.send(f"Searching and downloading: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number)
-        stat = await dw.analyze(text, self.songs, c)
+        stat = await dw.analyze(text, loop=c)
         if stat == "ok":
             if self.isp:
                 song = self.songs[self.queue]
@@ -256,7 +256,7 @@ class Bot:
         else:
             await self.ctx.send(f"Searching and playing now, please wait: `{text}`...")
         dw = Downloader(self.queue, self.ctx, self.bot_number, self.sss)
-        stat = await dw.analyze(text, self.songs, pos=pos)
+        stat = await dw.analyze(text, pos=pos)
         if stat == "ok":
             if self.isp:
                 song = self.songs[self.sss + pos]
@@ -336,7 +336,7 @@ class Bot:
             if tracks and i >= tracks and not full: break
             if validators.url(url):
                 dw = Downloader(self.queue, self.ctx, self.bot_number)
-                stat = await dw.analyze(url, self.songs)
+                stat = await dw.analyze(url)
                 print(self.queue)
                 if stat == "ok":
                     added_songs.append(self.songs[self.queue])
@@ -374,7 +374,7 @@ class Bot:
         for url in urls:
             if validators.url(url):
                 dw = Downloader(self.queue, self.ctx, self.bot_number)
-                stat = await dw.analyze(url, self.songs)
+                stat = await dw.analyze(url)
                 if stat == "ok":
                     added_songs.append(self.songs[self.queue])
                     if not self.isp:
@@ -696,4 +696,3 @@ class Bot:
             except TypeError:
                 self.TG.new_tg = False
             await asyncio.sleep(2)
-                # TODO: Допилить эту функцию. Подключение к каналу через отправителя

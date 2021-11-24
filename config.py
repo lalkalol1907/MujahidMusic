@@ -46,3 +46,10 @@ class DBCFG(JSONProvider):
         self.PASSWORD = self.get("DB", "password")
         self.DB = self.get("DB", "db")
         self.CHARSET = self.get("DB", "charset")
+        
+
+class TikTokCFG(JSONProvider):
+    def __init__(self):
+        global config_path
+        super().__init__(config_path)
+        self.TOKEN("TIKTOK", "TOKEN")
