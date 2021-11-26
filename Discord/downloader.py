@@ -10,7 +10,6 @@ import pafy
 import http
 from config import SpotifyCFG
 from Discord.vars import bots
-from TikTokApi import TikTokApi
 
 
 class Song:
@@ -115,30 +114,6 @@ class Downloader:
             text = text[:len(text)-1] + f" - {track['name']}"
         print(text)
         return await self.__download_from_yt_url(f"https://www.youtube.com{YoutubeSearch(text, max_results=1).to_dict()[0]['url_suffix']}", "spotify", pos, loop)
-        
-    async def tik_tok_download(self, url, pos, loop=1):
-        try:
-            api = TikTokApi.get_instance()
-            data = api.get_video_by_url(url)
-            with open(f"./music/queue/{self.bot}-song{self.queue+1}.mp3", 'wb') as file:
-                file.write(data)
-        except:
-            return "link"
-        self.queue += 1
-        if pos != 0:
-            print(pos + self.current_song)
-            try:
-                bots[self.bot].queue += 1
-                bots[self.bot].songs.insert(self.current_song + pos, Song(self.queue, url, f"{pafy.new(url).title}",
-                                                                          duration, True, "tiktok", self.ctx, loop))
-            except Exception as ex:
-                print(ex)
-                # songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, source, self.ctx, loop))
-        else:
-            bots[self.bot].queue += 1
-            bots[self.bot].songs.append(Song(self.queue, url, f"{pafy.new(url).title}", duration, True, "tiktok", self.ctx, loop))
-        return "ok"
-            
         
     async def vk(self, text):
         login, password = 'login', 'password'
