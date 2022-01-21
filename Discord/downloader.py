@@ -52,18 +52,21 @@ class Downloader:
     async def __download_from_yt_url(self, url, source, pos, loop = 1):
         try:
             youtube = pytube.YouTube(url)
-        except: 
+        except Exception as ex: 
+            print(f"first\n {ex}")
             return "link"
         try: 
             f = youtube.streams.filter(only_audio=True).first()
         except http.client.IncompleteRead:
             try:  
                 f = youtube.streams.filter(only_audio=True).first()
-            except: 
+            except Exception as ex: 
+                print(f"second\n {ex}")
                 return "link"
         except pytube.exceptions.AgeRestrictedError:
             return "age"
-        except: 
+        except Exception as ex:
+            print(f"third\n {ex}")
             return "link"
 
         async def a():
@@ -78,12 +81,13 @@ class Downloader:
             self.stat = False
         await a()
         if not self.stat:
+            print("return in if")
             return "link"
         self.queue += 1
         try:
             duration = youtube.length
         except Exception as ex:
-            print(ex)
+            print(f"fourth\n {ex}")
             return "link"
         if pos != 0:
             print(pos + self.current_song)
