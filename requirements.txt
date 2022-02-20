@@ -1,7 +1,7 @@
 discord
 youtube_search
 spotipy
-pytube
+git+https://github.com/pytube/pytube
 validators
 vk_api
 gunicorn
